@@ -1,0 +1,61 @@
+/* CSS que la extensión envía a la ventana de VS Code (no requiere volver a parchear VS Code).
+   __GLASS__ se reemplaza por la opacidad de los paneles (0-100).
+
+   Idea: una sola capa translúcida por cada parte de la interfaz. Si cada capa interna también
+   tuviera el color del tema, las transparencias se sumarían y todo volvería a verse opaco. */
+
+/* 1. Contenedores que ocupan toda la ventana: transparentes para dejar ver el fondo. */
+body.aura-on .monaco-workbench .monaco-grid-view,
+body.aura-on .monaco-workbench .part > .content,
+body.aura-on .monaco-workbench .part.editor .editor-container {
+    background-color: transparent !important;
+}
+
+/* 2. Cada parte de la interfaz: una capa translúcida con el color del tema. */
+body.aura-on .monaco-workbench .part.editor {
+    background-color: color-mix(in srgb, var(--vscode-editor-background) __GLASS__%, transparent) !important;
+}
+body.aura-on .monaco-workbench .part.sidebar,
+body.aura-on .monaco-workbench .part.auxiliarybar {
+    background-color: color-mix(in srgb, var(--vscode-sideBar-background) __GLASS__%, transparent) !important;
+}
+body.aura-on .monaco-workbench .part.panel {
+    background-color: color-mix(in srgb, var(--vscode-panel-background) __GLASS__%, transparent) !important;
+}
+body.aura-on .monaco-workbench .part.activitybar {
+    background-color: color-mix(in srgb, var(--vscode-activityBar-background) __GLASS__%, transparent) !important;
+}
+body.aura-on .monaco-workbench .part.titlebar {
+    background-color: color-mix(in srgb, var(--vscode-titleBar-activeBackground) __GLASS__%, transparent) !important;
+}
+body.aura-on .monaco-workbench .part.titlebar.inactive {
+    background-color: color-mix(in srgb, var(--vscode-titleBar-inactiveBackground) __GLASS__%, transparent) !important;
+}
+body.aura-on .monaco-workbench .part.statusbar {
+    background-color: color-mix(in srgb, var(--vscode-statusBar-background) __GLASS__%, transparent) !important;
+}
+
+/* 3. Dentro de cada parte, las capas internas no repiten el color. */
+body.aura-on .monaco-workbench .part > .content {
+    --vscode-editor-background: transparent;
+    --vscode-editorGutter-background: transparent;
+    --vscode-editorPane-background: transparent;
+    --vscode-minimap-background: transparent;
+    --vscode-breadcrumb-background: transparent;
+    --vscode-sideBar-background: transparent;
+    --vscode-sideBarSectionHeader-background: transparent;
+    --vscode-panel-background: transparent;
+    --vscode-terminal-background: transparent;
+    --vscode-activityBar-background: transparent;
+    --vscode-editorGroupHeader-tabsBackground: transparent;
+    --vscode-editorGroupHeader-noTabsBackground: transparent;
+    --vscode-welcomePage-background: transparent;
+}
+
+/* 4. Pestañas: las inactivas dejan ver el fondo; la activa se resalta un poco. */
+body.aura-on .monaco-workbench .part.editor .tabs-container > .tab:not(.active) {
+    background-color: transparent !important;
+}
+body.aura-on .monaco-workbench .part.editor .tabs-container > .tab.active {
+    background-color: color-mix(in srgb, var(--vscode-tab-activeBackground) 45%, transparent) !important;
+}

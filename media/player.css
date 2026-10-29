@@ -1,0 +1,225 @@
+/* Reproductor de la pestaña "Música". Usa la fuente del editor (por ejemplo Monocraft).
+   Por defecto es transparente (se ve el fondo / cristal de Aura); "retro" = ventana blanco y negro. */
+:root {
+    --fg: var(--vscode-foreground);
+    --bg: transparent;
+    --line: 0px;
+}
+
+body.retro {
+    --fg: #ffffff;
+    --bg: #000000;
+    --line: 2px;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    padding: 8px;
+    box-sizing: border-box;
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--vscode-editor-font-family), Consolas, monospace;
+}
+
+.window {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: var(--line) solid var(--fg);
+    background: var(--bg);
+    box-sizing: border-box;
+    min-height: 140px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px 4px 1px 6px;
+    border-bottom: var(--line) solid var(--fg);
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* Transparente: sin barra de título; solo queda el botón de estilo en la esquina. */
+body:not(.retro) header {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 0;
+}
+
+body:not(.retro) header span {
+    display: none;
+}
+
+body:not(.retro) .square {
+    background: none;
+    border: 1px solid var(--fg);
+    opacity: .5;
+}
+
+button {
+    font: inherit;
+    color: var(--fg);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+button:hover {
+    opacity: .7;
+}
+
+.controls button svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    vertical-align: middle;
+}
+
+.controls button {
+    padding: 0 8px;
+}
+
+.square {
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    background: var(--fg);
+}
+
+.body {
+    flex: 1;
+    min-height: 0;
+    padding: 10px 14px 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+#content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#artist {
+    margin: 6px 0 10px;
+    opacity: .9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.row {
+    flex: 1;
+    min-height: 48px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+}
+
+.art {
+    flex: none;
+    height: 100%;
+    max-height: 110px;
+    aspect-ratio: 1;
+}
+
+.art img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .35);
+}
+
+body.retro .art img {
+    border-radius: 0;
+    box-shadow: none;
+    filter: grayscale(1) contrast(1.15);
+}
+
+#bars {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    max-height: 110px;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.controls {
+    flex: 1;
+    text-align: center;
+}
+
+#time {
+    font-variant-numeric: tabular-nums;
+    opacity: .9;
+}
+
+.progress {
+    height: 4px;
+    margin-top: 6px;
+    border-radius: 2px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--fg) 18%, transparent);
+}
+
+#progress {
+    height: 100%;
+    width: 0;
+    background: var(--accent, var(--fg));
+}
+
+body.retro .progress {
+    border-radius: 0;
+    border: 1px solid var(--fg);
+    background: none;
+}
+
+body.retro #progress {
+    background: var(--fg);
+}
+
+.empty {
+    margin: auto;
+    text-align: center;
+    line-height: 1.6;
+    opacity: .85;
+}
+
+.empty button {
+    margin-top: 8px;
+    border: 1px solid var(--fg);
+    padding: 2px 10px;
+}

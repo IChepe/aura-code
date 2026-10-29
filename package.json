@@ -1,0 +1,249 @@
+{
+  "name": "aura-code",
+  "displayName": "Aura Code — Cristal, Fondos y Música",
+  "description": "Convierte VS Code en una ventana de cristal: catálogo de fondos y fuentes, transparencia real (acrílico) y fondos que se sincronizan con la música que estás escuchando.",
+  "version": "1.0.0",
+  "publisher": "IChepe",
+  "author": {
+    "name": "IChepe",
+    "email": "jdastorgamo1782@gmail.com",
+    "url": "https://github.com/IChepe"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/IChepe/aura-code#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IChepe/aura-code.git"
+  },
+  "bugs": {
+    "url": "https://github.com/IChepe/aura-code/issues",
+    "email": "jdastorgamo1782@gmail.com"
+  },
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#120f1f",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "keywords": [
+    "background",
+    "transparent",
+    "glass",
+    "acrylic",
+    "music",
+    "fondo",
+    "transparencia",
+    "musica"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "auraMusic",
+          "title": "Música",
+          "icon": "media/music.svg"
+        }
+      ]
+    },
+    "views": {
+      "auraMusic": [
+        {
+          "type": "webview",
+          "id": "aura.musicView",
+          "name": "Reproductor"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "aura.showMusic",
+        "title": "Mostrar el reproductor de música",
+        "category": "Aura",
+        "icon": "$(play-circle)"
+      },
+      {
+        "command": "aura.openCatalog",
+        "title": "Abrir catálogo",
+        "category": "Aura",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "aura.enable",
+        "title": "Activar efectos (modifica VS Code)",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.disable",
+        "title": "Desactivar y restaurar VS Code",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.pickBackground",
+        "title": "Elegir fondo",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.pickFont",
+        "title": "Elegir fuente",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.pickImage",
+        "title": "Usar una imagen propia como fondo…",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.toggleMusic",
+        "title": "Activar/desactivar sincronización con la música",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.pickInstalledFont",
+        "title": "Usar otra fuente instalada…",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.installFontFile",
+        "title": "Instalar fuente desde archivo (.zip, .ttf, .otf)…",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.resetUiFont",
+        "title": "Restaurar la fuente de la interfaz",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.setVisibility",
+        "title": "Ajustar visibilidad de VS Code sobre el escritorio",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.moreVisible",
+        "title": "VS Code más visible",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.lessVisible",
+        "title": "VS Code más transparente",
+        "category": "Aura"
+      }
+    ],
+    "configuration": {
+      "title": "Aura Code",
+      "properties": {
+        "aura.background": {
+          "type": "string",
+          "default": "aurora",
+          "markdownDescription": "Fondo activo. Puede ser un degradado del catálogo (`aurora`, `sunset`, `neon`…), `album` (carátula de la música), `wallpaper` (tu fondo de escritorio), `image` (ver `#aura.customImage#`) o `none`."
+        },
+        "aura.customImage": {
+          "type": "string",
+          "default": "",
+          "description": "Ruta a una imagen propia (png, jpg, gif, webp) usada cuando el fondo es 'image'."
+        },
+        "aura.glassOpacity": {
+          "type": "number",
+          "default": 0.78,
+          "minimum": 0.1,
+          "maximum": 1,
+          "description": "Opacidad de los paneles (editor, barra lateral, terminal…). Menos = más cristal."
+        },
+        "aura.backgroundBlur": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 80,
+          "description": "Desenfoque del fondo en píxeles (ideal 20-40 para efecto cristal con imágenes)."
+        },
+        "aura.backgroundDim": {
+          "type": "number",
+          "default": 0.35,
+          "minimum": 0,
+          "maximum": 0.95,
+          "description": "Oscurecimiento del fondo para que el código se lea bien."
+        },
+        "aura.music.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Sincroniza el fondo con la música que suena en el equipo (Spotify, YouTube, navegador…). Solo Windows por ahora."
+        },
+        "aura.music.reactivity": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Qué tan fuerte reacciona el fondo al ritmo de la música."
+        },
+        "aura.transparency": {
+          "type": "string",
+          "enum": [
+            "off",
+            "acrylic",
+            "mica"
+          ],
+          "enumDescriptions": [
+            "Sin transparencia real: se usa el fondo elegido.",
+            "Experimental (Windows 11): ventana translúcida que deja ver lo que hay detrás, desenfocado. Requiere reiniciar VS Code.",
+            "Experimental (Windows 11): material Mica, tinte suave con el color del escritorio. Requiere reiniciar VS Code."
+          ],
+          "default": "off",
+          "description": "Transparencia real de la ventana."
+        },
+        "aura.windowOpacity": {
+          "type": "number",
+          "default": 0.92,
+          "minimum": 0.3,
+          "maximum": 1,
+          "description": "Visibilidad de VS Code sobre tu escritorio con el fondo 'Mi escritorio (cristal)'. Más alto = VS Code resalta más; 1 = opaco."
+        },
+        "aura.uiFont": {
+          "type": "string",
+          "default": "",
+          "description": "Fuente de la interfaz de VS Code (barra lateral, pestañas, menús). Vacío = la de siempre. Debe estar instalada."
+        },
+        "aura.fontApplyToTerminal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Al elegir una fuente del catálogo, aplicarla también a la terminal integrada."
+        },
+        "aura.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Guarda un informe técnico local (~/.aura-code/diag.json) para diagnosticar problemas de dibujo. No se envía a ningún lado."
+        },
+        "aura.port": {
+          "type": "number",
+          "default": 47823,
+          "description": "Puerto local (127.0.0.1) que usa Aura para enviar los efectos a la ventana. Si lo cambias, vuelve a ejecutar 'Aura: Activar efectos'."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "vscode:uninstall": "node ./out/uninstall.js",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "@types/ws": "^8.5.12",
+    "@vscode/vsce": "^3.2.0",
+    "typescript": "^5.6.0"
+  }
+}
