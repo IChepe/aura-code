@@ -1,8 +1,8 @@
 # Seguridad
 
-## Versión oficial
+## Dónde descargarla
 
-La única fuente oficial de Aura Code es este repositorio, [github.com/IChepe/aura-code](https://github.com/IChepe/aura-code), y el publicador **IChepe** en el Marketplace de VS Code (`IChepe.aura-code`). No instales copias de otros autores o sitios: podrían estar modificadas.
+Para tener siempre una copia sin modificar, descarga Aura Code desde este repositorio, [github.com/IChepe/aura-code](https://github.com/IChepe/aura-code), o del publicador **IChepe** en el Marketplace de VS Code (`IChepe.aura-code`).
 
 ## Reportar una vulnerabilidad
 

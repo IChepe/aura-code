@@ -11,9 +11,7 @@
   <img alt="Windows 10/11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white">
 </p>
 
-> 🛡️ **Versión oficial.** Este repositorio — [github.com/IChepe/aura-code](https://github.com/IChepe/aura-code) — es la **única fuente oficial** de Aura Code, creada por [**IChepe**](https://github.com/IChepe).
-> En el Marketplace de VS Code la versión oficial es la del publicador **IChepe** (`IChepe.aura-code`).
-> Cualquier otra copia, *fork* o paquete con otro autor **no es oficial** y no está verificada: descarga solo desde aquí.
+> 🆓 **100 % gratis y de código abierto.** Sin pagos, sin cuentas y sin anuncios. Creado por [**IChepe**](https://github.com/IChepe).
 
 Aura Code es una extensión de código abierto que cambia por completo la apariencia de Visual Studio Code:
 
