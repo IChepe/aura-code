@@ -374,6 +374,56 @@ export const FONTS: FontEntry[] = [
     },
 ];
 
+/** Textos en inglés del catálogo (el español está en cada entrada). */
+const EN: Record<string, { name?: string; description?: string; note?: string }> = {
+    // Degradados
+    'aurora': { description: 'Greens and violets like the northern lights.' },
+    'nebula': { name: 'Nebula', description: 'Clouds of color over deep space.' },
+    'neon': { name: 'Neon Tokyo', description: 'Pink and cyan, synthwave style.' },
+    'sunset': { name: 'Sunset', description: 'Purple sky fading into orange.' },
+    'ocean': { name: 'Ocean', description: 'Deep, calm blues.' },
+    'forest': { name: 'Forest', description: 'Soft, damp greens.' },
+    'lava': { name: 'Lava', description: 'Red embers on black.' },
+    'vaporwave': { description: '80s pastel.' },
+    'midnight': { name: 'Midnight', description: 'Almost black, discreet and elegant.' },
+    'candy': { name: 'Cotton candy', description: 'Light pinks and lilacs.' },
+    // Fondos especiales
+    'album': { name: 'Album cover', description: 'The background takes the colors and artwork of the song playing.' },
+    'wallpaper': { name: 'My desktop (glass)', description: 'VS Code turns into glass: see your desktop or Wallpaper Engine live behind your code.' },
+    'image': { name: 'Custom image', description: 'Choose any image on your PC.' },
+    'none': { name: 'No background', description: 'Regular VS Code (only your fonts are kept).' },
+    // Fuentes
+    'cascadia': { note: 'By Microsoft, ships with Windows Terminal.' },
+    'jetbrains': { note: 'Very readable, tall letters.' },
+    'fira': { note: 'The classic ligature font.' },
+    'monaspace-neon': { note: 'By GitHub. Also comes in Argon, Xenon, Radon and Krypton.' },
+    'monaspace-radon': { note: 'Handwriting style, great for comments.' },
+    'victor': { note: 'Calligraphy-like italics.' },
+    'maple': { note: 'Rounded and friendly.' },
+    'geist': { note: 'Modern and clean, by Vercel.' },
+    'iosevka': { note: 'Narrow: fits more code per line.' },
+    'hack': { note: 'Sober and very clear.' },
+    'source-code-pro': { note: 'By Adobe.' },
+    'plex': { note: 'Full of personality, by IBM.' },
+    'consolas': { note: 'Included with Windows (the classic one).' },
+    'monocraft': { note: 'A coding font in Minecraft style, with ligatures!' },
+    'minecraftia': { note: 'The Minecraft menu font.' },
+    'press-start': { note: '8-bit arcade, like Super Mario Bros. on NES. Monospaced.' },
+    'super-mario': { note: 'Round, chunky Super Mario letters.' },
+    'mario-kart': { note: 'The Mario Kart title letters.' },
+    'zelda-botw': { note: 'Inspired by Zelda: Breath of the Wild.' },
+    'triforce': { note: 'The classic The Legend of Zelda logo.' },
+    'pokemon': { note: 'The yellow Pokémon logo.' },
+    'determination': { note: 'The Undertale dialogue font.' },
+    'vt323': { note: 'Retro green terminal, Fallout style. Monospaced.' },
+    'pixelify': { note: 'Modern pixel art, great for the interface.' },
+};
+
+/** Devuelve una entrada del catálogo con sus textos en el idioma pedido. */
+export function localize<T extends { id: string }>(entry: T, lang: 'es' | 'en'): T {
+    return lang === 'en' ? { ...entry, ...EN[entry.id] } : entry;
+}
+
 /**
  * De dónde descargar cada fuente para instalarla con un clic. Solo fuentes públicas, sin servidor propio:
  * el repositorio abierto de Google Fonts, releases de GitHub y descargas directas de dafont.

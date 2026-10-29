@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import * as vscode from 'vscode';
 import { getConfig } from './config';
+import { getLang, messages, t } from './i18n';
 import { AuraHub } from './hub';
 import { MediaCommand, MediaWatcher } from './media';
 
@@ -41,6 +42,13 @@ export class MusicViewProvider implements vscode.WebviewViewProvider, vscode.Dis
         view.onDidChangeVisibility(() => view.visible && this.sendState(), null, this.disposables);
     }
 
+    /** Cambió el idioma: se vuelve a generar el HTML. */
+    relocalize(): void {
+        if (this.view) {
+            this.view.webview.html = this.html(this.view.webview);
+        }
+    }
+
     private sendState(): void {
         this.post({
             type: 'state',
@@ -49,6 +57,7 @@ export class MusicViewProvider implements vscode.WebviewViewProvider, vscode.Dis
             pos: this.hub.currentPosition,
             enabled: getConfig().musicEnabled,
             supported: MediaWatcher.isSupported(),
+            i18n: messages('player.'),
         });
     }
 
@@ -61,7 +70,7 @@ export class MusicViewProvider implements vscode.WebviewViewProvider, vscode.Dis
         const css = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'player.css'));
         const js = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'player.js'));
         return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${getLang()}">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
@@ -72,7 +81,7 @@ export class MusicViewProvider implements vscode.WebviewViewProvider, vscode.Dis
 <section class="window" id="player">
   <header>
     <span>AUDIO</span>
-    <button class="square" id="style" title="Cambiar estilo (transparente / retro)"></button>
+    <button class="square" id="style" title="${t('player.style')}"></button>
   </header>
   <div class="body">
     <div id="empty" class="empty" hidden></div>
@@ -86,9 +95,9 @@ export class MusicViewProvider implements vscode.WebviewViewProvider, vscode.Dis
       <div class="status">
         <span id="state"></span>
         <span class="controls">
-          <button id="prev" title="Anterior"><svg viewBox="0 0 16 16"><path d="M3 3h2v10H3zM13 3v10L6 8z"/></svg></button>
-          <button id="playpause" title="Reproducir / pausar"><svg viewBox="0 0 16 16"><path d="M2 3v10l6-5zM10 3h2v10h-2zM13 3h2v10h-2z"/></svg></button>
-          <button id="next" title="Siguiente"><svg viewBox="0 0 16 16"><path d="M11 3h2v10h-2zM3 3v10l7-5z"/></svg></button>
+          <button id="prev" title="${t('player.prev')}"><svg viewBox="0 0 16 16"><path d="M3 3h2v10H3zM13 3v10L6 8z"/></svg></button>
+          <button id="playpause" title="${t('player.playPause')}"><svg viewBox="0 0 16 16"><path d="M2 3v10l6-5zM10 3h2v10h-2zM13 3h2v10h-2z"/></svg></button>
+          <button id="next" title="${t('player.next')}"><svg viewBox="0 0 16 16"><path d="M11 3h2v10h-2zM3 3v10l7-5z"/></svg></button>
         </span>
         <span id="time"></span>
       </div>

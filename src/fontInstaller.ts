@@ -1,13 +1,13 @@
 import { execFile } from 'child_process';
 import * as fs from 'fs';
-import * as https from 'https';
 import * as os from 'os';
 import * as path from 'path';
 import { FontDownload } from './catalog';
+import { t } from './i18n';
+import { downloadTo, latestRelease } from './net';
 
 const FONT_EXT = /\.(ttf|otf|ttc)$/i;
 const SKIP_PATH = /__MACOSX|woff|webfont/i;
-const USER_AGENT = 'aura-code-vscode-extension';
 
 export interface InstalledFont {
     file: string;
@@ -37,15 +37,15 @@ export class FontInstaller {
         const dir = await this.tempDir(id);
         const urls = spec.urls ? [...spec.urls] : [];
         if (spec.github) {
-            report('Buscando la última versión en GitHub…');
+            report(t('font.searchingGithub'));
             urls.push(await this.githubAsset(spec.github.repo, new RegExp(spec.github.asset)));
         }
         const files: string[] = [];
         for (const [i, url] of urls.entries()) {
-            report(`Descargando ${urls.length > 1 ? `(${i + 1}/${urls.length}) ` : ''}…`);
+            report(urls.length > 1 ? t('font.downloadingN', i + 1, urls.length) : t('font.downloading'));
             files.push(await this.download(url, dir));
         }
-        report('Instalando…');
+        report(t('font.installingStep'));
         const fonts: string[] = [];
         for (const file of files) {
             fonts.push(...await this.fontsIn(file, spec.files ? new RegExp(spec.files, 'i') : undefined));
@@ -139,53 +139,16 @@ export class FontInstaller {
         return false;
     }
 
-    private get(url: string, redirects = 8): Promise<import('http').IncomingMessage> {
-        return new Promise((resolve, reject) => {
-            const req = https.get(url, { headers: { 'User-Agent': USER_AGENT, Accept: '*/*' }, timeout: 30_000 }, res => {
-                const status = res.statusCode ?? 0;
-                if (status >= 300 && status < 400 && res.headers.location && redirects > 0) {
-                    res.resume();
-                    resolve(this.get(new URL(res.headers.location, url).toString(), redirects - 1));
-                } else if (status !== 200) {
-                    res.resume();
-                    reject(new Error(`HTTP ${status} al descargar ${url}`));
-                } else {
-                    resolve(res);
-                }
-            });
-            req.on('timeout', () => req.destroy(new Error('Tiempo de espera agotado')));
-            req.on('error', reject);
-        });
-    }
-
     private async githubAsset(repo: string, pattern: RegExp): Promise<string> {
-        const res = await this.get(`https://api.github.com/repos/${repo}/releases/latest`);
-        let body = '';
-        for await (const chunk of res) {
-            body += chunk;
-        }
-        const assets: { name: string; browser_download_url: string }[] = JSON.parse(body).assets ?? [];
-        const asset = assets.find(a => pattern.test(a.name));
+        const asset = (await latestRelease(repo)).assets.find(a => pattern.test(a.name));
         if (!asset) {
-            throw new Error(`No encontré el archivo de la fuente en ${repo}`);
+            throw new Error(t('font.assetNotFound', repo));
         }
         return asset.browser_download_url;
     }
 
     private async download(url: string, dir: string): Promise<string> {
-        const res = await this.get(url);
-        const disposition = String(res.headers['content-disposition'] ?? '');
-        const fromHeader = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition)?.[1];
-        let name = decodeURIComponent(fromHeader ?? path.basename(new URL(url).pathname)) || 'font';
-        name = name.replace(/[<>:"/\\|?*]/g, '_');
-        const file = path.join(dir, name);
-        await new Promise<void>((resolve, reject) => {
-            const out = fs.createWriteStream(file);
-            res.pipe(out);
-            out.on('finish', () => resolve());
-            out.on('error', reject);
-            res.on('error', reject);
-        });
+        const file = await downloadTo(url, dir);
         this.log(`[fuentes] descargado ${url} -> ${file}`);
         return file;
     }
@@ -222,7 +185,7 @@ export class FontInstaller {
 
     private async install(fonts: string[]): Promise<InstalledFont[]> {
         if (!fonts.length) {
-            throw new Error('El paquete no contiene archivos de fuente (.ttf, .otf o .ttc).');
+            throw new Error(t('font.noFontsInPackage'));
         }
         const list = path.join(await this.tempDir('list'), 'fonts.txt');
         await fs.promises.writeFile(list, fonts.join('\r\n'), 'utf8');

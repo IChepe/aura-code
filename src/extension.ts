@@ -1,16 +1,19 @@
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { FONT_DOWNLOADS, GRADIENTS, SPECIAL_BACKGROUNDS } from './catalog';
+import { FONT_DOWNLOADS, GRADIENTS, localize, SPECIAL_BACKGROUNDS } from './catalog';
 import { CatalogPanel } from './catalogPanel';
 import { getConfig, setSetting } from './config';
 import { FontInstaller, InstalledFont } from './fontInstaller';
 import { applyCodeFont, applyUiFont, fontStatuses, pickInstalledFont, refreshFontCache } from './fonts';
 import { AuraHub } from './hub';
+import { getLang, MessageKey, t } from './i18n';
 import { IMAGE_EXTENSIONS } from './images';
 import { TrackInfo } from './media';
 import { MusicViewProvider } from './musicView';
 import * as core from './patchCore';
+import { Updater } from './updater';
 import { applyWindowGlass } from './windowGlass';
 
 const WANT_PATCHED = 'aura.wantPatched';
@@ -19,7 +22,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
     const log = vscode.window.createOutputChannel('Aura Code');
     const appRoot = vscode.env.appRoot;
     const paths = core.appPaths(appRoot);
-    const version: string = ctx.extension.packageJSON.version;
     const hub = new AuraHub(ctx.extensionPath, log);
     ctx.subscriptions.push(log, hub);
 
@@ -31,69 +33,61 @@ export function activate(ctx: vscode.ExtensionContext): void {
     // --- Barra de estado ---------------------------------------------------------
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     status.command = 'aura.openCatalog';
-    const updateStatus = (t: TrackInfo) => {
-        if (t.title && getConfig().musicEnabled) {
-            const label = t.artist ? `${t.title} — ${t.artist}` : t.title;
-            status.text = `$(${t.playing ? 'pulse' : 'debug-pause'}) ${label.length > 45 ? label.slice(0, 44) + '…' : label}`;
-            status.tooltip = `Aura · ${t.playing ? 'Sonando' : 'En pausa'} en ${t.app || 'tu equipo'}\nClic para abrir el catálogo`;
+    const updateStatus = (track: TrackInfo) => {
+        if (track.title && getConfig().musicEnabled) {
+            const label = track.artist ? `${track.title} — ${track.artist}` : track.title;
+            status.text = `$(${track.playing ? 'pulse' : 'debug-pause'}) ${label.length > 45 ? label.slice(0, 44) + '…' : label}`;
+            status.tooltip = t('status.trackTooltip', t(track.playing ? 'status.playing' : 'status.paused'), track.app || t('status.yourPc'));
         } else {
             status.text = '$(sparkle) Aura';
-            status.tooltip = 'Aura · Abrir catálogo de fondos y fuentes';
+            status.tooltip = t('status.idleTooltip');
         }
         status.show();
     };
     updateStatus(hub.currentTrack);
-    ctx.subscriptions.push(status, hub.onTrack(t => {
-        updateStatus(t);
-        CatalogPanel.notifyTrack(t);
+    ctx.subscriptions.push(status, hub.onTrack(track => {
+        updateStatus(track);
+        CatalogPanel.notifyTrack(track);
     }));
 
     // --- Activar / desactivar ----------------------------------------------------
+    /**
+     * Identifica el código inyectado (contenido de runtime.js + puerto). Así solo se pide reiniciar
+     * VS Code cuando ese código cambia, no en cada actualización de la extensión.
+     */
+    function runtimeSource(): { code: string; id: string } {
+        const port = String(getConfig().port);
+        const template = fs.readFileSync(path.join(ctx.extensionPath, 'media', 'runtime.js'), 'utf8');
+        const id = crypto.createHash('sha256').update(template + port).digest('hex').slice(0, 12);
+        return { code: template.replace('__AURA_PORT__', port).replace('__AURA_VERSION__', id), id };
+    }
+
     function writePatches(): void {
         const cfg = getConfig();
-        const runtime = fs.readFileSync(path.join(ctx.extensionPath, 'media', 'runtime.js'), 'utf8')
-            .replace('__AURA_PORT__', String(cfg.port))
-            .replace('__AURA_VERSION__', version);
-        core.writeWorkbenchPatch(appRoot, runtime);
+        core.writeWorkbenchPatch(appRoot, runtimeSource().code);
         core.writeMainPatch(appRoot, cfg.transparency === 'acrylic' || cfg.transparency === 'mica' ? cfg.transparency : null);
         core.rememberInstall(appRoot);
     }
 
     function explainWriteError(err: unknown): void {
         const code = (err as NodeJS.ErrnoException).code;
-        const hint = code === 'EPERM' || code === 'EACCES'
-            ? ' No hay permisos para modificar la instalación de VS Code: ábrelo como administrador una vez y vuelve a intentarlo.'
-            : '';
-        vscode.window.showErrorMessage(`Aura: no se pudo modificar VS Code. ${(err as Error).message}.${hint}`);
+        const hint = code === 'EPERM' || code === 'EACCES' ? t('patch.permissionHint') : '';
+        vscode.window.showErrorMessage(t('patch.writeError', (err as Error).message, hint));
         log.appendLine(String(err));
     }
 
-    async function askReload(message: string, fullRestart: boolean): Promise<void> {
-        if (fullRestart) {
-            // Recargar no basta: el proceso principal de VS Code conserva en memoria los archivos y
-            // checksums anteriores (aparecería el aviso de "instalación dañada" y no cargaría el parche).
-            const choice = await vscode.window.showInformationMessage(
-                `${message} Cierra TODAS las ventanas de VS Code y vuelve a abrirlo para ver los cambios.`, 'Cerrar VS Code');
-            if (choice) {
-                await vscode.commands.executeCommand('workbench.action.quit');
-            }
-            return;
-        }
-        const choice = await vscode.window.showInformationMessage(message, 'Recargar ahora');
+    /** Recargar no basta: el proceso principal de VS Code conserva en memoria los archivos y checksums anteriores. */
+    async function askRestart(message: string): Promise<void> {
+        const choice = await vscode.window.showInformationMessage(t('patch.restartAll', message), t('btn.closeVsCode'));
         if (choice) {
-            await vscode.commands.executeCommand('workbench.action.reloadWindow');
+            await vscode.commands.executeCommand('workbench.action.quit');
         }
     }
 
     async function enable(): Promise<void> {
         if (!isPatched()) {
-            const ok = await vscode.window.showWarningMessage(
-                'Aura necesita modificar un archivo de VS Code para dibujar fondos y transparencia. ' +
-                'Se guarda una copia de seguridad y puedes revertirlo con "Aura: Desactivar y restaurar VS Code".',
-                { modal: true },
-                'Activar',
-            );
-            if (ok !== 'Activar') {
+            const ok = await vscode.window.showWarningMessage(t('patch.confirm'), { modal: true }, t('btn.activate'));
+            if (ok !== t('btn.activate')) {
                 return;
             }
         }
@@ -105,7 +99,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         }
         await ctx.globalState.update(WANT_PATCHED, true);
         CatalogPanel.notify();
-        await askReload('Aura está activo ✨', true);
+        await askRestart(t('patch.enabled'));
     }
 
     async function disable(): Promise<void> {
@@ -118,7 +112,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         }
         await ctx.globalState.update(WANT_PATCHED, false);
         CatalogPanel.notify();
-        await askReload('VS Code fue restaurado.', true);
+        await askRestart(t('patch.restored'));
     }
 
     // --- Fondos y fuentes --------------------------------------------------------
@@ -132,8 +126,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
     async function pickImage(): Promise<void> {
         const files = await vscode.window.showOpenDialog({
             canSelectMany: false,
-            openLabel: 'Usar como fondo',
-            filters: { Imágenes: IMAGE_EXTENSIONS },
+            openLabel: t('bg.dialogUse'),
+            filters: { [t('bg.filterImages')]: IMAGE_EXTENSIONS },
         });
         if (files?.[0]) {
             await setSetting('customImage', files[0].fsPath);
@@ -151,10 +145,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
     }
 
     async function askRestartForFonts(name: string): Promise<void> {
-        const choice = await vscode.window.showInformationMessage(
-            `✅ "${name}" quedó instalada. VS Code solo reconoce fuentes nuevas al abrirse: ciérralo por completo y vuelve a abrirlo para verla.`,
-            'Cerrar VS Code ahora', 'Más tarde');
-        if (choice === 'Cerrar VS Code ahora') {
+        const choice = await vscode.window.showInformationMessage(t('font.installedRestart', name), t('btn.closeNow'), t('btn.later'));
+        if (choice === t('btn.closeNow')) {
             await vscode.commands.executeCommand('workbench.action.quit');
         }
     }
@@ -168,7 +160,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         const spec = FONT_DOWNLOADS[id];
         try {
             const result = await vscode.window.withProgress(
-                { location: vscode.ProgressLocation.Notification, title: `Aura: instalando "${name}"` },
+                { location: vscode.ProgressLocation.Notification, title: t('font.installing', name) },
                 progress => installer.installFromCatalog(id, spec, message => progress.report({ message })),
             );
             fontsChanged();
@@ -176,7 +168,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         } catch (err) {
             log.appendLine(`[fuentes] ${err}`);
             const choice = await vscode.window.showErrorMessage(
-                `Aura: no se pudo instalar "${name}" (${err instanceof Error ? err.message : err}).`, 'Ver detalles');
+                t('font.installFailed', name, String(err instanceof Error ? err.message : err)), t('btn.details'));
             if (choice) {
                 log.show();
             }
@@ -189,13 +181,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
         fontsChanged();
         const family = baseFamily(fonts);
         if (!family) {
-            vscode.window.showWarningMessage(`Aura: "${source}" no contenía fuentes válidas.`);
+            vscode.window.showWarningMessage(t('font.noValidFonts', source));
             return;
         }
         const choice = await vscode.window.showInformationMessage(
-            `✅ Instalé "${family}" desde ${source}. ¿Dónde quieres usarla?`, 'En el código', 'En la interfaz', 'Solo instalar');
-        if (choice === 'En el código' || choice === 'En la interfaz') {
-            await applyNamedFont(family, choice === 'En el código' ? 'code' : 'ui');
+            t('font.installedFrom', family, source), t('btn.inCode'), t('btn.inUi'), t('btn.justInstall'));
+        if (choice === t('btn.inCode') || choice === t('btn.inUi')) {
+            await applyNamedFont(family, choice === t('btn.inCode') ? 'code' : 'ui');
         }
         await askRestartForFonts(family);
     }
@@ -203,8 +195,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
     async function installFontFile(): Promise<void> {
         const files = await vscode.window.showOpenDialog({
             canSelectMany: false,
-            openLabel: 'Instalar fuente',
-            filters: { Fuentes: ['zip', 'ttf', 'otf', 'ttc'] },
+            openLabel: t('font.dialogInstall'),
+            filters: { [t('font.filterFonts')]: ['zip', 'ttf', 'otf', 'ttc'] },
         });
         if (!files?.[0]) {
             return;
@@ -223,17 +215,15 @@ export function activate(ctx: vscode.ExtensionContext): void {
             await vscode.env.openExternal(vscode.Uri.parse(url));
         }
         if (!FontInstaller.isSupported()) {
-            vscode.window.showInformationMessage(`Descarga e instala "${name}" y luego vuelve a elegirla.`);
+            vscode.window.showInformationMessage(t('font.manualOtherOs', name));
             return;
         }
         installer.watchDownloads(
             async (fileName, count) => (await vscode.window.showInformationMessage(
-                `Aura detectó "${fileName}" en Descargas con ${count} fuente(s). ¿Instalarlas?`, 'Instalar', 'No')) === 'Instalar',
+                t('font.detected', fileName, count), t('btn.install'), t('btn.no'))) === t('btn.install'),
             (fonts, file) => offerInstalled(fonts, path.basename(file)),
         );
-        const choice = await vscode.window.showInformationMessage(
-            `Descarga "${name}" desde la página. Cuando termine, Aura la detectará en tu carpeta Descargas y te ofrecerá instalarla (durante 15 minutos).`,
-            'Ya la tengo: instalar desde archivo…');
+        const choice = await vscode.window.showInformationMessage(t('font.manualInfo', name), t('btn.haveIt'));
         if (choice) {
             await installFontFile();
         }
@@ -257,12 +247,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
             font = (await fontStatuses()).find(f => f.id === id) ?? font;
         }
         if (target === 'code' && font.mono === false) {
-            const choice = await vscode.window.showWarningMessage(
-                `"${font.name}" tiene letras de distinto ancho: el código se verá desalineado. Queda mejor en la interfaz.`,
-                'Usar en la interfaz', 'Usar en el código igual');
-            if (choice === 'Usar en la interfaz') {
+            const choice = await vscode.window.showWarningMessage(t('font.notMono', font.name), t('btn.useInUi'), t('btn.useInCodeAnyway'));
+            if (choice === t('btn.useInUi')) {
                 target = 'ui';
-            } else if (choice !== 'Usar en el código igual') {
+            } else if (choice !== t('btn.useInCodeAnyway')) {
                 return;
             }
         }
@@ -281,7 +269,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         } else {
             await applyCodeFont(family, ligatures, mono);
         }
-        vscode.window.setStatusBarMessage(`Aura: "${family}" aplicada ${target === 'ui' ? 'en la interfaz' : 'en el código'}`, 3000);
+        vscode.window.setStatusBarMessage(t(target === 'ui' ? 'font.appliedUi' : 'font.appliedCode', family), 3000);
     }
 
     async function pickInstalled(target?: 'code' | 'ui', filter = ''): Promise<void> {
@@ -292,10 +280,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
         if (!target) {
             const where = await vscode.window.showQuickPick(
                 [
-                    { label: '$(code) En el código', description: 'Editor y terminal', target: 'code' as const },
-                    { label: '$(layout) En la interfaz', description: 'Barra lateral, pestañas, menús', target: 'ui' as const },
+                    { label: `$(code) ${t('btn.inCode')}`, description: t('font.whereCode'), target: 'code' as const },
+                    { label: `$(layout) ${t('btn.inUi')}`, description: t('font.whereUi'), target: 'ui' as const },
                 ],
-                { placeHolder: `¿Dónde usar "${family}"?` },
+                { placeHolder: t('font.where', family) },
             );
             if (!where) {
                 return;
@@ -317,7 +305,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
             return;
         }
         visibilityItem.text = `$(eye) ${Math.round(cfg.windowOpacity * 100)}%`;
-        visibilityItem.tooltip = 'Aura · Visibilidad de VS Code sobre tu escritorio\nClic para cambiarla';
+        visibilityItem.tooltip = t('visibility.tooltip');
         visibilityItem.show();
     }
     updateVisibilityItem();
@@ -326,13 +314,15 @@ export function activate(ctx: vscode.ExtensionContext): void {
         const clamped = Math.round(Math.max(0.3, Math.min(1, value)) * 100) / 100;
         await setSetting('windowOpacity', clamped);
         if (getConfig().background !== 'wallpaper') {
-            const choice = await vscode.window.showInformationMessage(
-                'La visibilidad solo aplica con el fondo "Mi escritorio (cristal)".', 'Usar ese fondo');
+            const choice = await vscode.window.showInformationMessage(t('visibility.onlyWallpaper'), t('btn.useThatBackground'));
             if (choice) {
                 await setBackground('wallpaper');
             }
         }
     }
+
+    // --- Actualizaciones -----------------------------------------------------------
+    const updater = new Updater(ctx, m => log.appendLine(m));
 
     // --- Comandos ----------------------------------------------------------------
     const actions = {
@@ -349,35 +339,37 @@ export function activate(ctx: vscode.ExtensionContext): void {
         currentTrack: () => hub.currentTrack,
     };
 
+    const VISIBILITY_LEVELS: { value: number; label: MessageKey; detail?: MessageKey }[] = [
+        { value: 100, label: 'visibility.opaque', detail: 'visibility.opaqueDetail' },
+        { value: 95, label: 'visibility.prominent', detail: 'visibility.prominentDetail' },
+        { value: 90, label: 'visibility.veryVisible' },
+        { value: 85, label: 'visibility.balanced', detail: 'visibility.balancedDetail' },
+        { value: 78, label: 'visibility.translucent' },
+        { value: 70, label: 'visibility.subtle', detail: 'visibility.subtleDetail' },
+        { value: 55, label: 'visibility.ghost', detail: 'visibility.ghostDetail' },
+    ];
+
     ctx.subscriptions.push(
         vscode.commands.registerCommand('aura.openCatalog', () => CatalogPanel.show(ctx.extensionUri, actions)),
         vscode.commands.registerCommand('aura.enable', enable),
         vscode.commands.registerCommand('aura.disable', disable),
         vscode.commands.registerCommand('aura.pickImage', pickImage),
+        vscode.commands.registerCommand('aura.checkForUpdates', () => updater.check(true)),
         vscode.commands.registerCommand('aura.toggleMusic', async () => {
             const next = !getConfig().musicEnabled;
             await setSetting('music.enabled', next);
-            vscode.window.setStatusBarMessage(`Aura: música ${next ? 'sincronizada' : 'desactivada'}`, 3000);
+            vscode.window.setStatusBarMessage(t(next ? 'music.synced' : 'music.off'), 3000);
         }),
         vscode.commands.registerCommand('aura.setVisibility', async () => {
             const current = Math.round(getConfig().windowOpacity * 100);
-            const levels = [
-                { value: 100, label: 'Opaco', detail: 'Sin transparencia' },
-                { value: 95, label: 'Destacado', detail: 'VS Code resalta mucho, el escritorio se intuye' },
-                { value: 90, label: 'Muy visible', detail: '' },
-                { value: 85, label: 'Equilibrado', detail: 'Código y escritorio a partes iguales' },
-                { value: 78, label: 'Translúcido', detail: '' },
-                { value: 70, label: 'Sutil', detail: 'El escritorio protagoniza' },
-                { value: 55, label: 'Fantasma', detail: 'Solo para lucirse' },
-            ];
             const pick = await vscode.window.showQuickPick(
-                levels.map(l => ({
-                    label: `${l.value}%  ${l.label}`,
-                    description: l.value === current ? '(actual)' : '',
-                    detail: l.detail || undefined,
+                VISIBILITY_LEVELS.map(l => ({
+                    label: `${l.value}%  ${t(l.label)}`,
+                    description: l.value === current ? t('visibility.current') : '',
+                    detail: l.detail ? t(l.detail) : undefined,
                     value: l.value,
                 })),
-                { placeHolder: `Visibilidad de VS Code sobre tu escritorio (ahora ${current}%)` },
+                { placeHolder: t('visibility.placeholder', current) },
             );
             if (pick) {
                 await setVisibility(pick.value / 100);
@@ -387,12 +379,17 @@ export function activate(ctx: vscode.ExtensionContext): void {
         vscode.commands.registerCommand('aura.lessVisible', () => setVisibility(getConfig().windowOpacity - 0.05)),
         vscode.commands.registerCommand('aura.pickBackground', async () => {
             const current = getConfig().background;
+            const lang = getLang();
             const items = [
-                ...SPECIAL_BACKGROUNDS.map(s => ({ label: `${s.icon}  ${s.name}`, description: s.description, id: s.id as string })),
+                ...SPECIAL_BACKGROUNDS.map(s => localize(s, lang)).map(s => ({ label: `${s.icon}  ${s.name}`, description: s.description, id: s.id as string })),
                 { label: '', kind: vscode.QuickPickItemKind.Separator, id: '' },
-                ...GRADIENTS.map(g => ({ label: `$(color-mode) ${g.name}`, description: g.description + (g.animated ? ' · animado' : ''), id: g.id })),
+                ...GRADIENTS.map(g => localize(g, lang)).map(g => ({
+                    label: `$(color-mode) ${g.name}`,
+                    description: g.description + (g.animated ? ` · ${t('bg.animated')}` : ''),
+                    id: g.id,
+                })),
             ].map(i => ({ ...i, picked: i.id === current }));
-            const pick = await vscode.window.showQuickPick(items, { placeHolder: 'Elige un fondo' });
+            const pick = await vscode.window.showQuickPick(items, { placeHolder: t('bg.pick') });
             if (!pick) {
                 return;
             }
@@ -406,19 +403,22 @@ export function activate(ctx: vscode.ExtensionContext): void {
             const fonts = await fontStatuses();
             const item = (f: (typeof fonts)[number]) => ({
                 label: (f.category === 'game' ? '$(game) ' : '') + f.name,
-                description: [f.game, f.installed === false ? '$(cloud-download) no instalada' : f.installed ? '$(check) instalada' : '',
-                    f.mono === false ? 'decorativa' : ''].filter(Boolean).join(' · '),
+                description: [
+                    f.game,
+                    f.installed === false ? `$(cloud-download) ${t('font.notInstalled')}` : f.installed ? `$(check) ${t('font.installed')}` : '',
+                    f.mono === false ? t('font.decorative') : '',
+                ].filter(Boolean).join(' · '),
                 detail: f.note,
                 id: f.id,
             });
             const pick = await vscode.window.showQuickPick([
-                { label: 'Para programar', kind: vscode.QuickPickItemKind.Separator, id: '' },
+                { label: t('font.sepCode'), kind: vscode.QuickPickItemKind.Separator, id: '' },
                 ...fonts.filter(f => f.category !== 'game').map(item),
-                { label: 'Videojuegos', kind: vscode.QuickPickItemKind.Separator, id: '' },
+                { label: t('font.sepGames'), kind: vscode.QuickPickItemKind.Separator, id: '' },
                 ...fonts.filter(f => f.category === 'game').map(item),
                 { label: '', kind: vscode.QuickPickItemKind.Separator, id: '' },
-                { label: '$(search) Otra fuente instalada…', description: 'Cualquier fuente de tu equipo', detail: undefined, id: '__installed' },
-            ], { placeHolder: 'Elige una fuente para el editor' });
+                { label: `$(search) ${t('font.other')}`, description: t('font.otherDesc'), detail: undefined, id: '__installed' },
+            ], { placeHolder: t('font.pick') });
             if (!pick) {
                 return;
             }
@@ -440,7 +440,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
             hub.restart();
             if (isPatched()) {
                 writePatches();
-                await askReload('Aura cambió de puerto.', true);
+                await askRestart(t('patch.portChanged'));
             }
         } else if (e.affectsConfiguration('aura.transparency') && isPatched()) {
             // Solo acrílico/mica viven en el proceso principal y necesitan reiniciar VS Code.
@@ -452,17 +452,21 @@ export function activate(ctx: vscode.ExtensionContext): void {
             }
             hub.refresh();
             if (hadMaterial !== core.hasPatch(paths.main) || core.hasPatch(paths.main)) {
-                vscode.window.showInformationMessage('Aura: cierra VS Code por completo y vuelve a abrirlo para aplicar el cambio de transparencia.');
+                vscode.window.showInformationMessage(t('patch.transparencyRestart'));
             }
         } else if (e.affectsConfiguration('aura')) {
             hub.refresh();
         }
         if (e.affectsConfiguration('aura.background') || e.affectsConfiguration('aura.windowOpacity')) {
             applyWindowGlass(ctx.extensionPath, getConfig(), m => log.appendLine(m));
-            updateVisibilityItem();
+        }
+        if (e.affectsConfiguration('aura.language')) {
+            CatalogPanel.relocalize();
+            music.relocalize();
         }
         if (e.affectsConfiguration('aura') || e.affectsConfiguration('editor.fontFamily')) {
             updateStatus(hub.currentTrack);
+            updateVisibilityItem();
             CatalogPanel.notify();
         }
     }));
@@ -471,15 +475,17 @@ export function activate(ctx: vscode.ExtensionContext): void {
     checkPatchHealth();
     // Cada ventana nueva aplica el cristal (o lo quita) en todas, incluida ella misma.
     applyWindowGlass(ctx.extensionPath, getConfig(), m => log.appendLine(m));
+    // Unos segundos después de abrir, para no competir con el arranque de VS Code.
+    const updateTimer = setTimeout(() => updater.check(), 15_000);
+    ctx.subscriptions.push({ dispose: () => clearTimeout(updateTimer) });
 
-    // Tras una actualización de VS Code el parche desaparece; o la extensión se actualizó y el
-    // código inyectado quedó viejo. En ambos casos ofrecemos reaplicarlo.
+    // Tras una actualización de VS Code el parche desaparece; o el código inyectado cambió en una
+    // actualización de Aura. En ambos casos se vuelve a aplicar.
     async function checkPatchHealth(): Promise<void> {
         if (!ctx.globalState.get(WANT_PATCHED, false)) {
             if (!ctx.globalState.get('aura.welcomed', false)) {
                 await ctx.globalState.update('aura.welcomed', true);
-                const choice = await vscode.window.showInformationMessage(
-                    '¡Aura Code instalado! Abre el catálogo para elegir fondos, fuentes y sincronizar con tu música.', 'Abrir catálogo');
+                const choice = await vscode.window.showInformationMessage(t('welcome'), t('btn.openCatalog'));
                 if (choice) {
                     CatalogPanel.show(ctx.extensionUri, actions);
                 }
@@ -487,7 +493,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
             return;
         }
         const injected = core.patchVersion(paths.workbench);
-        if (injected === version) {
+        if (injected === runtimeSource().id) {
             return;
         }
         try {
@@ -496,7 +502,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
             explainWriteError(err);
             return;
         }
-        await askReload(injected ? 'Aura se actualizó.' : 'VS Code se actualizó y Aura se volvió a aplicar.', true);
+        await askRestart(t(injected ? 'patch.auraUpdated' : 'patch.vscodeUpdated'));
     }
 }
 

@@ -13,6 +13,8 @@
     let shown = [];
     let colors = null;
     let raf = 0;
+    let i18n = {};
+    const T = key => i18n['player.' + key] || key;
 
     document.body.classList.toggle('retro', retro);
 
@@ -30,6 +32,7 @@
         const m = e.data;
         switch (m.type) {
             case 'state':
+                i18n = m.i18n || i18n;
                 track = m.track;
                 pos = m.pos;
                 setArt(m.art);
@@ -57,16 +60,16 @@
         $('content').hidden = !has;
         empty.hidden = !!has;
         if (!m.supported) {
-            empty.replaceChildren('La música por ahora solo funciona en Windows.');
+            empty.replaceChildren(T('windowsOnly'));
         } else if (!m.enabled) {
             const b = document.createElement('button');
-            b.textContent = 'Activar';
+            b.textContent = T('enable');
             b.addEventListener('click', () => vscode.postMessage({ type: 'enableMusic' }));
-            empty.replaceChildren('La sincronización con la música está apagada.', document.createElement('br'), b);
+            empty.replaceChildren(T('off'), document.createElement('br'), b);
         } else if (!has) {
             colors = null;
             document.body.style.removeProperty('--accent');
-            empty.replaceChildren('Nada sonando', document.createElement('br'), 'Pon música en Spotify, YouTube o donde quieras ♪');
+            empty.replaceChildren(T('nothing'), document.createElement('br'), T('nothingHint'));
         }
         if (has) {
             $('title').textContent = track.title;

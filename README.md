@@ -1,240 +1,261 @@
 <h1 align="center">✨ Aura Code — Visual Studio Code Theme Changer 🎨</h1>
 
 <p align="center">
-  <b>Transforma VS Code por completo: modo cristal sobre tu escritorio, fondos animados, fuentes de videojuegos y un reproductor de música que late con tus canciones.</b>
+  <b>Completely transform VS Code: glass mode over your desktop, animated backgrounds, video game fonts and a music player that beats with your songs.</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/IChepe/aura-code/releases/latest"><img alt="Descargar" src="https://img.shields.io/github/v/release/IChepe/aura-code?label=descargar&style=for-the-badge&color=6a3093"></a>
-  <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-0f9b8e?style=for-the-badge"></a>
+  <a href="https://github.com/IChepe/aura-code/releases/latest"><img alt="Download" src="https://img.shields.io/github/v/release/IChepe/aura-code?label=download&style=for-the-badge&color=6a3093"></a>
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-0f9b8e?style=for-the-badge"></a>
   <img alt="VS Code 1.90+" src="https://img.shields.io/badge/VS%20Code-1.90%2B-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white">
   <img alt="Windows 10/11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white">
 </p>
 
-> 🆓 **100 % gratis y de código abierto.** Sin pagos, sin cuentas y sin anuncios. Creado por [**IChepe**](https://github.com/IChepe).
+<p align="center"><b>🇬🇧 English</b> · <a href="README.es.md">🇪🇸 Español</a></p>
 
-Aura Code es una extensión de código abierto que cambia por completo la apariencia de Visual Studio Code:
+> 🆓 **100% free and open source.** No payments, no accounts, no ads. Made by [**IChepe**](https://github.com/IChepe).
 
-- 🪟 **Cristal sobre tu escritorio**: VS Code se vuelve translúcido y ves tu escritorio — o tu fondo animado de **Wallpaper Engine** — en vivo detrás del código. Tú decides cuánto resalta VS Code.
-- 🎨 **Catálogo de fondos**: degradados animados (Aurora, Nebulosa, Neón Tokio, Lava…), la carátula de la canción que suena o cualquier imagen tuya, con paneles de cristal.
-- 🎵 **Pestaña Música**: un reproductor junto a *Problems / Output / Terminal* con título, artista, carátula, **visualizador de frecuencias real**, progreso y controles ⏮ ⏯ ⏭. Funciona con Spotify, YouTube en el navegador y cualquier app que muestre su música en Windows.
-- 💓 **Fondos que laten con la música**: el fondo toma los colores del álbum y pulsa al ritmo.
-- 🔤 **Catálogo de fuentes** para programar: Cascadia Code, JetBrains Mono, Fira Code, Monaspace, Victor Mono, Maple Mono y más.
-- 🎮 **Fuentes de videojuegos**: Minecraft (Monocraft, Minecraftia), Super Mario, Mario Kart, Zelda, Pokémon, Undertale, arcade y retro. Úsalas en el código o en la interfaz (barra lateral, pestañas, menús).
-- ⚡ **Instalación de fuentes con un clic** (Windows): Aura las descarga de su origen público, las instala solo para tu usuario y te avisa cuando están listas. Sin permisos de administrador.
+Aura Code is an open-source extension that completely changes how Visual Studio Code looks:
 
-![VS Code en modo cristal sobre un fondo animado de Wallpaper Engine, con la pestaña Música abajo](docs/images/glass-mode.png)
-<sub>*VS Code en **modo cristal** sobre un fondo de Wallpaper Engine (estilo Minecraft), con la fuente Monocraft y la pestaña **Música** sonando.*</sub>
+- 🪟 **Glass over your desktop**: VS Code turns translucent and you see your desktop — or your animated **Wallpaper Engine** background — live behind your code. You decide how much VS Code stands out.
+- 🎨 **Background catalog**: animated gradients (Aurora, Nebula, Neon Tokyo, Lava…), the cover art of the song playing, or any image of yours, with glass panels.
+- 🎵 **Music tab**: a player next to *Problems / Output / Terminal* with title, artist, cover art, a **real frequency visualizer**, progress and ⏮ ⏯ ⏭ controls. Works with Spotify, YouTube in the browser and any app that shows its music in Windows.
+- 💓 **Backgrounds that beat with the music**: the background takes the album colors and pulses to the rhythm.
+- 🔤 **Coding font catalog**: Cascadia Code, JetBrains Mono, Fira Code, Monaspace, Victor Mono, Maple Mono and more.
+- 🎮 **Video game fonts**: Minecraft (Monocraft, Minecraftia), Super Mario, Mario Kart, Zelda, Pokémon, Undertale, arcade and retro. Use them in the code or in the interface (sidebar, tabs, menus).
+- ⚡ **One-click font installs** (Windows): Aura downloads them from their public source, installs them just for your user and tells you when they're ready. No admin rights needed.
+- 🌍 **English and Spanish**: pick the language in the catalog or let it follow VS Code.
+- 🔔 **One-click updates**: Aura lets you know when a new version is out and installs it for you.
+
+![VS Code in glass mode over an animated Wallpaper Engine background, with the Music tab below](docs/images/glass-mode.png)
+<sub>*VS Code in **glass mode** over a Wallpaper Engine background (Minecraft style), with the Monocraft font and the **Music** tab playing. Screenshots show the Spanish interface.*</sub>
 
 ---
 
-## 📸 Recorrido por las funciones
+## 📸 Feature tour
 
-### 🪟 Modo cristal: tu escritorio en vivo detrás del código
+### 🪟 Glass mode: your live desktop behind your code
 
-El modo cristal convierte toda la ventana de VS Code en un vidrio: ves tu escritorio — incluidos los **fondos animados de Wallpaper Engine**, que siguen moviéndose — y encima tu código.
+Glass mode turns the whole VS Code window into glass: you see your desktop — including **animated Wallpaper Engine backgrounds**, which keep moving — with your code on top.
 
-**Cómo activarlo**
+**How to turn it on**
 
-1. Abre el catálogo (**✨ Aura** en la barra de estado).
-2. En **Fondos** elige **Mi escritorio (cristal)**.
-3. Listo: se aplica al instante, sin reiniciar.
+1. Open the catalog (**✨ Aura** in the status bar).
+2. Under **Backgrounds** choose **My desktop (glass)**.
+3. Done: it applies instantly, no restart.
 
-**Cómo ajustarlo a tu gusto**
+**How to tune it**
 
-En la barra de estado aparece **👁 92%**: es cuánto *resalta* VS Code sobre tu escritorio. Haz clic y elige un nivel:
+The status bar shows **👁 92%**: that's how much VS Code *stands out* over your desktop. Click it and pick a level:
 
-| Nivel | Qué verás |
+| Level | What you'll see |
 | --- | --- |
-| **100 % Opaco** | VS Code normal, sin transparencia |
-| **95 % Destacado** | El código resalta mucho; el escritorio apenas se intuye |
-| **90 % Muy visible** | Buen equilibrio para programar muchas horas |
-| **85 % Equilibrado** | Código y escritorio a partes iguales |
-| **78 % Translúcido** | El escritorio gana protagonismo |
-| **70 % Sutil** | Ideal para lucir un fondo animado |
-| **55 % Fantasma** | Solo para presumir 😎 |
+| **100% Opaque** | Regular VS Code, no transparency |
+| **95% Prominent** | The code stands out; the desktop is just a hint |
+| **90% Very visible** | Great balance for long coding sessions |
+| **85% Balanced** | Code and desktop in equal parts |
+| **78% Translucent** | The desktop takes more of the spotlight |
+| **70% Subtle** | Perfect to show off an animated background |
+| **55% Ghost** | Just for showing off 😎 |
 
-También puedes usar la barra **Visibilidad de VS Code sobre tu escritorio** del catálogo (con botones rápidos *Sutil / Equilibrado / Destacado / Opaco*) o los comandos **Aura: VS Code más visible / más transparente**, a los que puedes asignar un atajo de teclado.
+You can also use the **VS Code visibility over your desktop** slider in the catalog (with *Subtle / Balanced / Prominent / Opaque* quick buttons) or the **Aura: Make VS Code more visible / more transparent** commands, which you can bind to a keyboard shortcut.
 
-![Ajustes del catálogo: visibilidad del modo cristal, cristal de los paneles y transparencia](docs/images/settings-fonts.png)
+![Catalog settings: glass mode visibility, panel glass and transparency](docs/images/settings-fonts.png)
 
-**Cosas que conviene saber**
+**Good to know**
 
-- El modo cristal **solo** se activa con el fondo *Mi escritorio*. Si eliges cualquier otro fondo, la ventana vuelve a ser opaca automáticamente.
-- Windows aplica la misma transparencia a **toda** la ventana, texto incluido. Si te cuesta leer, sube la visibilidad.
-- Se ve **todo** lo que haya detrás de VS Code (también otras ventanas abiertas). Para ver solo tu fondo de pantalla, maximiza VS Code.
-- No modifica archivos de VS Code: es una función de Windows, así que se aplica y se quita al instante.
-- Diferencia con los demás fondos: en *Aurora*, *Carátula de la música*, *Imagen propia*, etc. Aura **dibuja** el fondo dentro de VS Code y vuelve translúcidos los paneles (**Cristal de los paneles**); en *Mi escritorio* es Windows quien deja ver lo que hay **detrás** de la ventana.
+- Glass mode is **only** active with the *My desktop* background. If you pick any other background, the window becomes opaque again automatically.
+- Windows applies the same transparency to the **whole** window, text included. If it's hard to read, raise the visibility.
+- You see **everything** behind VS Code (other open windows too). To see only your wallpaper, maximize VS Code.
+- It doesn't modify VS Code files: it's a Windows feature, so it turns on and off instantly.
+- Difference from the other backgrounds: with *Aurora*, *Album cover*, *Custom image*, etc. Aura **draws** the background inside VS Code and makes the panels translucent (**Panel glass**); with *My desktop*, Windows lets you see what's **behind** the window.
 
-### 🎨 Catálogo de fondos
+### 🎨 Background catalog
 
-Elige entre fondos especiales y degradados (los marcados como *animado* se mueven lentamente):
+Choose between special backgrounds and gradients (the ones marked *animated* move slowly):
 
-- **Carátula de la música**: el fondo se tiñe con los colores del álbum que suena y late al ritmo.
-- **Mi escritorio (cristal)**: el modo cristal explicado arriba.
-- **Imagen propia**: cualquier foto o GIF de tu equipo, con desenfoque y oscurecimiento ajustables.
-- **Sin fondo**: VS Code normal (mantiene tus fuentes).
-- **Degradados**: Aurora, Nebulosa, Neón Tokio, Atardecer, Océano, Bosque, Lava, Vaporwave, Medianoche y Algodón de azúcar.
+- **Album cover**: the background is tinted with the colors of the album playing and beats to the rhythm.
+- **My desktop (glass)**: the glass mode explained above.
+- **Custom image**: any photo or GIF on your PC, with adjustable blur and dimming.
+- **No background**: regular VS Code (keeps your fonts).
+- **Gradients**: Aurora, Nebula, Neon Tokyo, Sunset, Ocean, Forest, Lava, Vaporwave, Midnight and Cotton candy.
 
-![Catálogo de fondos de Aura Code](docs/images/catalog.png)
+![Aura Code background catalog](docs/images/catalog.png)
 
-### 🎵 Pestaña Música
+### 🎵 Music tab
 
-Una pestaña nueva en el panel inferior, junto a *Problems*, *Output* y *Terminal*:
+A new tab in the bottom panel, next to *Problems*, *Output* and *Terminal*:
 
-- Título y artista de la canción, carátula del álbum y estado (*Playing / Paused*).
-- **Visualizador de frecuencias real**: Aura captura el audio que suena en tu PC y lo separa en 48 bandas (graves → agudos); no es una animación.
-- Barra de progreso con el tiempo y botones **⏮ ⏯ ⏭** que controlan Spotify, YouTube, etc.
-- Estilo **transparente** (con los colores de la carátula) o **retro** en blanco y negro: cámbialo con el cuadrito de la esquina.
+- Song title and artist, album cover and status (*Playing / Paused*).
+- **Real frequency visualizer**: Aura captures the audio playing on your PC and splits it into 48 bands (bass → treble); it's not a canned animation.
+- Progress bar with time, and **⏮ ⏯ ⏭** buttons that control Spotify, YouTube, etc.
+- **Transparent** style (with the cover colors) or black-and-white **retro** style: switch with the little square in the corner.
 
-![Pestaña Música con visualizador de frecuencias](docs/images/music-tab.png)
+![Music tab with frequency visualizer](docs/images/music-tab.png)
 
-### 🎮 Fuentes de videojuegos y para programar
+### 🎮 Video game and coding fonts
 
-- Pulsa **⚡ Instalar · Código** o **⚡ Instalar · Interfaz**: Aura descarga la fuente, la instala y la aplica. Luego cierra y abre VS Code.
-- **Código** cambia la letra del editor; **Interfaz** cambia la barra lateral, pestañas y menús. Puedes combinarlas (por ejemplo Minecraftia en los menús y Monocraft en el código).
-- Las fuentes *decorativas* (Mario, Zelda, Pokémon…) tienen letras de distinto ancho: quedan mejor en la interfaz.
-- ¿Tienes otra fuente? Usa **Instalar desde archivo…** o **Usar otra fuente instalada…**.
+- Click **⚡ Install · Code** or **⚡ Install · Interface**: Aura downloads the font, installs it and applies it. Then close and reopen VS Code.
+- **Code** changes the editor font; **Interface** changes the sidebar, tabs and menus. You can mix them (for example Minecraftia in the menus and Monocraft in the code).
+- *Decorative* fonts (Mario, Zelda, Pokémon…) have letters of different widths: they look best in the interface.
+- Got another font? Use **Install from file…** or **Use another installed font…**.
 
-![Fuentes de videojuegos: Monocraft, Minecraftia, Press Start 2P, Super Mario 256 y Mario Kart DS](docs/images/game-fonts.png)
+![Video game fonts: Monocraft, Minecraftia, Press Start 2P, Super Mario 256 and Mario Kart DS](docs/images/game-fonts.png)
 
 ---
 
-## 📦 Instalación
+## 📦 Installation
 
-### Opción 1 — Desde el Marketplace de VS Code (recomendada)
+### Option 1 — From the VS Code Marketplace (recommended)
 
-1. En VS Code abre **Extensiones** (`Ctrl+Shift+X`).
-2. Busca **Aura Code** y comprueba que el publicador sea **IChepe**.
-3. Pulsa **Instalar**.
+1. In VS Code open **Extensions** (`Ctrl+Shift+X`).
+2. Search for **Aura Code** and check that the publisher is **IChepe**.
+3. Click **Install**.
 
-> Si todavía no aparece en el Marketplace, usa la opción 2.
+> If it isn't on the Marketplace yet, use option 2.
 
-### Opción 2 — Descargando el instalador (`.vsix`) desde GitHub
+### Option 2 — Download the installer (`.vsix`) from GitHub
 
-1. Ve a la página de [**Releases**](https://github.com/IChepe/aura-code/releases) y descarga el archivo `aura-code-X.Y.Z.vsix` más reciente.
-2. En VS Code abre **Extensiones** (`Ctrl+Shift+X`) → menú **`···`** → **Instalar desde VSIX…** (*Install from VSIX…*) y elige el archivo.
+1. Go to the [**Releases**](https://github.com/IChepe/aura-code/releases) page and download the latest `aura-code-X.Y.Z.vsix` file.
+2. In VS Code open **Extensions** (`Ctrl+Shift+X`) → **`···`** menu → **Install from VSIX…** and pick the file.
 
-   O desde una terminal:
+   Or from a terminal:
 
    ```bash
-   code --install-extension aura-code-1.0.0.vsix
+   code --install-extension aura-code-1.1.0.vsix
    ```
 
-### Opción 3 — Compilándola tú mismo desde el código
+### Option 3 — Build it yourself from source
 
-Requisitos: [Node.js](https://nodejs.org) 18 o superior y [Git](https://git-scm.com).
+Requirements: [Node.js](https://nodejs.org) 18 or later and [Git](https://git-scm.com).
 
 ```bash
 git clone https://github.com/IChepe/aura-code.git
 cd aura-code
 npm install
 npx vsce package
-code --install-extension aura-code-1.0.0.vsix
+code --install-extension aura-code-1.1.0.vsix
 ```
 
 ---
 
-## 🚀 Primeros pasos
+## 🚀 Getting started
 
-1. Tras instalar, haz clic en **✨ Aura** (barra de estado, abajo a la derecha) o ejecuta `Ctrl+Shift+P` → **Aura: Abrir catálogo**.
-2. Pulsa **Activar**. Aura pedirá permiso para modificar un archivo de VS Code ([por qué](#-cómo-funciona)).
-3. **Cierra VS Code por completo** (*File → Exit*) y vuelve a abrirlo.
-4. Elige un fondo en el catálogo:
-   - **Mi escritorio (cristal)** → ves tu escritorio / Wallpaper Engine en vivo. Ajusta cuánto resalta VS Code con el botón **👁 92%** de la barra de estado.
-   - **Carátula de la música** → el fondo toma los colores de la canción.
-   - Un **degradado**, una **imagen propia** o **sin fondo**.
-5. Abre la pestaña **Música** del panel inferior y pon tu canción favorita 🎶.
+1. After installing, click **✨ Aura** (status bar, bottom right) or run `Ctrl+Shift+P` → **Aura: Open catalog**.
+2. Click **Activate**. Aura will ask for permission to modify a VS Code file ([why](#-how-it-works)).
+3. **Close VS Code completely** (*File → Exit*) and open it again.
+4. Pick a background in the catalog:
+   - **My desktop (glass)** → see your desktop / Wallpaper Engine live. Adjust how much VS Code stands out with the **👁 92%** button in the status bar.
+   - **Album cover** → the background takes the colors of the song.
+   - A **gradient**, a **custom image** or **no background**.
+5. Open the **Music** tab in the bottom panel and play your favorite song 🎶.
 
-### Comandos
+### 🌍 Language
 
-| Comando | Qué hace |
+Aura speaks **English** and **Spanish**. In the catalog, under **Settings → Idioma / Language**, choose *Automatic* (follows the VS Code language), *Español* or *English*. The change applies instantly.
+
+> Command and setting names in VS Code follow the VS Code display language (*Configure Display Language*).
+
+### 🔔 Updates
+
+If you installed Aura from GitHub, it checks once a day for a new version. When there is one, you'll see a notification with **Update**: Aura downloads the installer from the Release, installs it, and you just reload the window. You can also check any time with **Aura: Check for updates**, or turn it off with the `aura.checkForUpdates` setting.
+
+> If you installed it from the Marketplace, VS Code updates it automatically and Aura doesn't check anything.
+
+### Commands
+
+| Command | What it does |
 | --- | --- |
-| `Aura: Abrir catálogo` | Panel con fondos, ajustes y fuentes |
-| `Aura: Elegir fondo` / `Aura: Elegir fuente` | Selectores rápidos |
-| `Aura: Mostrar el reproductor de música` | Abre la pestaña Música |
-| `Aura: Ajustar visibilidad de VS Code sobre el escritorio` | Opacidad del modo cristal |
-| `Aura: VS Code más visible` / `más transparente` | Ajuste de 5 en 5 % (puedes asignarles un atajo) |
-| `Aura: Usar una imagen propia como fondo…` | Elige una imagen de tu equipo |
-| `Aura: Instalar fuente desde archivo…` | Instala un `.zip`, `.ttf` u `.otf` |
-| `Aura: Usar otra fuente instalada…` | Cualquier fuente de tu equipo, en el código o en la interfaz |
-| `Aura: Restaurar la fuente de la interfaz` | Vuelve a la fuente normal de los menús |
-| `Aura: Activar/desactivar sincronización con la música` | |
-| `Aura: Activar efectos` / `Aura: Desactivar y restaurar VS Code` | Aplica o quita el parche |
+| `Aura: Open catalog` | Panel with backgrounds, settings and fonts |
+| `Aura: Choose background` / `Aura: Choose font` | Quick pickers |
+| `Aura: Show the music player` | Opens the Music tab |
+| `Aura: Adjust VS Code visibility over the desktop` | Glass mode opacity |
+| `Aura: Make VS Code more visible` / `more transparent` | Steps of 5% (bind them to a shortcut) |
+| `Aura: Use a custom image as background…` | Pick an image from your PC |
+| `Aura: Install font from file…` | Installs a `.zip`, `.ttf` or `.otf` |
+| `Aura: Use another installed font…` | Any font on your PC, in the code or the interface |
+| `Aura: Restore the interface font` | Back to the default menu font |
+| `Aura: Toggle music sync` | |
+| `Aura: Enable effects` / `Aura: Disable and restore VS Code` | Applies or removes the patch |
+| `Aura: Check for updates` | Checks GitHub for a new version |
 
-### Ajustes principales
+### Main settings
 
-| Ajuste | Por defecto | Descripción |
+| Setting | Default | Description |
 | --- | --- | --- |
-| `aura.background` | `aurora` | Fondo: un degradado, `album`, `wallpaper` (cristal), `image` o `none` |
-| `aura.windowOpacity` | `0.92` | Visibilidad de VS Code sobre el escritorio (fondo *Mi escritorio*) |
-| `aura.glassOpacity` | `0.78` | Opacidad de los paneles sobre los fondos |
-| `aura.backgroundDim` / `aura.backgroundBlur` | `0.35` / `0` | Oscurecer / desenfocar el fondo |
-| `aura.music.enabled` / `aura.music.reactivity` | `true` / `1` | Sincronización con la música |
-| `aura.uiFont` | | Fuente de la interfaz |
-| `aura.fontApplyToTerminal` | `true` | Aplicar también a la terminal (solo fuentes monoespaciadas) |
-| `aura.transparency` | `off` | `acrylic` / `mica`: material de Windows 11 (experimental) |
-| `aura.debug` | `false` | Guarda un informe técnico local para diagnosticar problemas |
+| `aura.background` | `aurora` | Background: a gradient, `album`, `wallpaper` (glass), `image` or `none` |
+| `aura.windowOpacity` | `0.92` | VS Code visibility over the desktop (*My desktop* background) |
+| `aura.glassOpacity` | `0.78` | Panel opacity over backgrounds |
+| `aura.backgroundDim` / `aura.backgroundBlur` | `0.35` / `0` | Dim / blur the background |
+| `aura.music.enabled` / `aura.music.reactivity` | `true` / `1` | Music sync |
+| `aura.uiFont` | | Interface font |
+| `aura.fontApplyToTerminal` | `true` | Also apply to the terminal (monospaced fonts only) |
+| `aura.transparency` | `off` | `acrylic` / `mica`: Windows 11 material (experimental) |
+| `aura.language` | `auto` | Language: `auto`, `es` or `en` |
+| `aura.checkForUpdates` | `true` | Notify when a new version is available |
+| `aura.debug` | `false` | Saves a local technical report to diagnose problems |
 
 ---
 
-## 🔧 Cómo funciona
+## 🔧 How it works
 
-La API oficial de extensiones **no permite** cambiar el fondo de VS Code. Por eso Aura, igual que otras extensiones populares de fondos, añade un pequeño bloque de código al final de `workbench.desktop.main.js` (el archivo que dibuja la interfaz).
+The official extension API **doesn't allow** changing the VS Code background. That's why Aura, like other popular background extensions, adds a small block of code at the end of `workbench.desktop.main.js` (the file that draws the interface).
 
 ```
-┌────────────────────┐   WebSocket local    ┌─────────────────────────────┐
-│ Extensión (Node)   │ ───────────────────▶ │ Ventana de VS Code          │
-│ · configuración    │   127.0.0.1 (solo    │ (código inyectado)          │
-│ · imágenes, CSS    │   este equipo)       │ · capa de fondo y cristal   │
-│ · música ──────────┼── PowerShell ───┐    │ · pulso con la música       │
+┌────────────────────┐   Local WebSocket    ┌─────────────────────────────┐
+│ Extension (Node)   │ ───────────────────▶ │ VS Code window              │
+│ · settings         │   127.0.0.1 (this    │ (injected code)             │
+│ · images, CSS      │   PC only)           │ · background & glass layer  │
+│ · music ───────────┼── PowerShell ───┐    │ · pulse with the music      │
 └────────────────────┘                 │    └─────────────────────────────┘
                                        ▼
-            Windows Media Controls (título, carátula, controles)
-            Core Audio / WASAPI (volumen y espectro en tiempo real)
+            Windows Media Controls (title, cover art, controls)
+            Core Audio / WASAPI (live volume and spectrum)
 ```
 
-- **Copias de seguridad**: antes de modificar nada se guarda una copia `*.aura-backup`. Al desactivar o desinstalar, VS Code queda **idéntico byte a byte** al original.
-- **Checksums**: Aura actualiza `product.json` para que VS Code no muestre el aviso de *"instalación dañada"*.
-- **Actualizaciones de VS Code**: cada actualización borra el parche; Aura lo detecta y lo vuelve a aplicar (te pedirá reiniciar una vez).
-- **Modo cristal (Mi escritorio)**: no modifica archivos; le pide a Windows que dibuje la ventana con transparencia.
+- **Backups**: before modifying anything, a `*.aura-backup` copy is saved. When you disable or uninstall, VS Code is left **byte-for-byte identical** to the original.
+- **Checksums**: Aura updates `product.json` so VS Code doesn't show the *"installation appears to be corrupt"* warning.
+- **VS Code updates**: every update removes the patch; Aura detects it and applies it again (it will ask you to restart once).
+- **Glass mode (My desktop)**: doesn't modify files; it asks Windows to draw the window with transparency.
 
-> ⚠️ Modificar archivos de VS Code no está soportado oficialmente por Microsoft. Si algo se ve mal, ejecuta **Aura: Desactivar y restaurar VS Code**.
-
----
-
-## 🔒 Privacidad y seguridad
-
-- **Nada sale de tu equipo.** Aura no tiene servidores, no recopila datos, no usa analíticas ni telemetría.
-- **El servidor interno solo escucha en `127.0.0.1`** (la dirección "localhost" de tu propio equipo, que no es accesible desde internet ni desde tu red) y **rechaza conexiones de páginas web**, para que ningún sitio pueda saber qué música escuchas ni controlar tu reproductor.
-- **Las únicas conexiones a internet** ocurren cuando tú pides instalar una fuente, y solo por HTTPS a sus orígenes públicos: el repositorio abierto de Google Fonts, releases de GitHub y dafont.
-- **Fuentes de la carpeta Descargas**: Aura nunca instala nada sin preguntarte.
-- **El código inyectado en VS Code solo dibuja** (estilos y colores); no ejecuta órdenes ni lee archivos.
-- Los scripts de PowerShell incluidos (`media/*.ps1`) son legibles: puedes revisar exactamente qué hacen.
-
-¿Encontraste un problema de seguridad? Lee [SECURITY.md](SECURITY.md).
+> ⚠️ Modifying VS Code files isn't officially supported by Microsoft. If something looks wrong, run **Aura: Disable and restore VS Code**.
 
 ---
 
-## ⚠️ Limitaciones conocidas
+## 🔒 Privacy and security
 
-- La música, el cristal sobre el escritorio y la instalación automática de fuentes funcionan en **Windows 10/11**. En macOS y Linux funcionan los fondos, los paneles de cristal y el catálogo de fuentes.
-- En el modo cristal, Windows aplica la misma transparencia a toda la ventana (texto incluido): sube la visibilidad si te cuesta leer.
-- El **minimapa** se dibuja opaco.
-- Las fuentes de videojuegos son **creaciones de fans o libres** inspiradas en cada juego, no las tipografías oficiales; Aura no las incluye, solo las descarga de su origen público.
-- Tras instalar una fuente nueva hay que cerrar y abrir VS Code para verla.
-- Si VS Code está instalado para todos los usuarios (en `Program Files`), puede que necesites abrirlo una vez como administrador para activar Aura.
+- **Nothing leaves your PC.** Aura has no servers, collects no data, and uses no analytics or telemetry.
+- **The internal server only listens on `127.0.0.1`** (your own computer's "localhost" address, unreachable from the internet or your network) and **rejects connections from web pages**, so no site can see what music you're listening to or control your player.
+- **The only internet connections**, always over HTTPS:
+  - when you ask to install a font, to its public source (the open Google Fonts repository, GitHub releases and dafont);
+  - once a day, to the public GitHub API to see if a new Aura version exists (no data about you is sent; turn it off with `aura.checkForUpdates`).
+- **Fonts in your Downloads folder**: Aura never installs anything without asking you.
+- **The code injected into VS Code only draws** (styles and colors); it doesn't run commands or read files.
+- The bundled PowerShell scripts (`media/*.ps1`) are readable: you can check exactly what they do.
 
-## 🗑️ Desinstalar
-
-1. Ejecuta **Aura: Desactivar y restaurar VS Code** y reinicia VS Code.
-2. Desinstala la extensión desde la pestaña Extensiones.
-
-(Si desinstalas sin desactivar, Aura restaura VS Code automáticamente la próxima vez que se reinicie.)
+Found a security issue? Read [SECURITY.md](SECURITY.md).
 
 ---
 
-## 🛠️ Desarrollo
+## ⚠️ Known limitations
+
+- Music, glass over the desktop and automatic font installs work on **Windows 10/11**. On macOS and Linux, backgrounds, glass panels and the font catalog work.
+- In glass mode, Windows applies the same transparency to the whole window (text included): raise the visibility if it's hard to read.
+- The **minimap** is drawn opaque.
+- Video game fonts are **fan-made or free creations** inspired by each game, not the official typefaces; Aura doesn't bundle them, it only downloads them from their public source.
+- After installing a new font you need to close and reopen VS Code to see it.
+- If VS Code is installed for all users (in `Program Files`), you may need to run it as administrator once to activate Aura.
+
+## 🗑️ Uninstall
+
+1. Run **Aura: Disable and restore VS Code** and restart VS Code.
+2. Uninstall the extension from the Extensions tab.
+
+(If you uninstall without disabling, Aura restores VS Code automatically the next time it restarts.)
+
+---
+
+## 🛠️ Development
 
 ```bash
 git clone https://github.com/IChepe/aura-code.git
@@ -243,46 +264,50 @@ npm install
 npm run compile
 ```
 
-Abre la carpeta en VS Code y pulsa **F5** (*Probar Aura Code*) para lanzar una ventana de pruebas.
+Open the folder in VS Code and press **F5** (*Probar Aura Code*) to launch a test window.
 
 ```
 src/
-  extension.ts     Activación, comandos, barra de estado, instalación de fuentes
-  hub.ts           Servidor WebSocket local; coordina varias ventanas
-  patchCore.ts     Aplicar/quitar el parche, checksums, copias de seguridad
-  uninstall.ts     Limpieza automática al desinstalar
-  media.ts         Lee la música desde media-watcher.ps1
-  musicView.ts     Pestaña "Música" del panel
-  windowGlass.ts   Cristal sobre el escritorio
-  catalog.ts       Catálogo de fondos y fuentes  ← ¡agrega los tuyos aquí!
-  catalogPanel.ts  Panel del catálogo
-  fonts.ts, fontInstaller.ts   Detección, descarga e instalación de fuentes
+  extension.ts     Activation, commands, status bar, font installs
+  hub.ts           Local WebSocket server; coordinates multiple windows
+  patchCore.ts     Apply/remove the patch, checksums, backups
+  uninstall.ts     Automatic cleanup on uninstall
+  media.ts         Reads music from media-watcher.ps1
+  musicView.ts     "Music" panel tab
+  windowGlass.ts   Glass over the desktop
+  catalog.ts       Background and font catalog  ← add yours here!
+  catalogPanel.ts  Catalog panel
+  i18n.ts          English and Spanish texts
+  updater.ts       Update notifications from GitHub
+  net.ts           HTTPS downloads
+  fonts.ts, fontInstaller.ts   Font detection, download and install
 media/
-  runtime.js           Código que se inyecta en la ventana de VS Code
-  aura.css             Estilos del cristal (se envían sin volver a parchear)
-  media-watcher.ps1    Música: metadatos, espectro y controles (Windows)
-  window-opacity.ps1   Transparencia de la ventana (Windows)
-  install-font.ps1     Instala fuentes para el usuario (Windows)
-  catalog.*, player.*  Interfaces del catálogo y del reproductor
+  runtime.js           Code injected into the VS Code window
+  aura.css             Glass styles (sent without re-patching)
+  media-watcher.ps1    Music: metadata, spectrum and controls (Windows)
+  window-opacity.ps1   Window transparency (Windows)
+  install-font.ps1     Installs fonts for the current user (Windows)
+  catalog.*, player.*  Catalog and player interfaces
+package.nls.json, package.nls.es.json   Command and setting names
 ```
 
-## 🤝 Contribuir
+## 🤝 Contributing
 
-¡Las contribuciones son bienvenidas! Ideas:
+Contributions are welcome! Ideas:
 
-- 🎨 Más degradados o fuentes en `src/catalog.ts`.
-- 🐧 Música en Linux (MPRIS / `playerctl`) y macOS.
-- 🖼️ Presentación de imágenes de una carpeta.
-- 🌍 Traducción al inglés.
+- 🎨 More gradients or fonts in `src/catalog.ts`.
+- 🐧 Music on Linux (MPRIS / `playerctl`) and macOS.
+- 🖼️ Slideshow from an image folder.
+- 🌍 More languages (texts live in `src/i18n.ts` and `package.nls.*.json`).
 
-1. Haz un *fork* y crea una rama: `git checkout -b mi-mejora`
-2. Haz tus cambios y pruébalos con **F5**
-3. Abre un *Pull Request* explicando qué cambiaste
+1. Fork the repo and create a branch: `git checkout -b my-improvement`
+2. Make your changes and test them with **F5**
+3. Open a *Pull Request* explaining what you changed
 
-## 👤 Autor
+## 👤 Author
 
-Creado por **IChepe** — [github.com/IChepe](https://github.com/IChepe) · jdastorgamo1782@gmail.com
+Made by **IChepe** — [github.com/IChepe](https://github.com/IChepe) · jdastorgamo1782@gmail.com
 
-## 📄 Licencia
+## 📄 License
 
-[MIT](LICENSE) © 2026 IChepe. Puedes usar, modificar y compartir Aura Code libremente manteniendo el aviso de copyright.
+[MIT](LICENSE) © 2026 IChepe. You're free to use, modify and share Aura Code as long as you keep the copyright notice.

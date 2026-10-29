@@ -1,7 +1,8 @@
 import { execFile } from 'child_process';
 import * as vscode from 'vscode';
-import { FONT_DOWNLOADS, FONTS, FontEntry } from './catalog';
+import { FONT_DOWNLOADS, FONTS, FontEntry, localize } from './catalog';
 import { getConfig, setSetting } from './config';
+import { getLang, t } from './i18n';
 
 function run(cmd: string, args: string[]): Promise<string> {
     return new Promise(resolve => {
@@ -61,7 +62,7 @@ export async function fontStatuses(): Promise<FontStatus[]> {
         const wanted = normalize(f.match ?? f.family);
         const found = families?.find(n => normalize(n) === wanted) ?? families?.find(n => normalize(n).includes(wanted));
         return {
-            ...f,
+            ...localize(f, getLang()),
             installed: families ? !!found : null,
             resolvedFamily: found ?? f.family,
             autoInstall: process.platform === 'win32' && !!FONT_DOWNLOADS[f.id],
@@ -97,11 +98,11 @@ export function currentFontFamily(): string {
 export async function pickInstalledFont(filter = ''): Promise<string | undefined> {
     const families = await installedFamilies();
     if (!families) {
-        return vscode.window.showInputBox({ prompt: 'Nombre exacto de la fuente instalada' });
+        return vscode.window.showInputBox({ prompt: t('font.exactName') });
     }
     const qp = vscode.window.createQuickPick();
     qp.items = families.map(label => ({ label }));
-    qp.placeholder = 'Elige una fuente instalada en tu equipo';
+    qp.placeholder = t('font.pickInstalled');
     qp.value = filter;
     return new Promise(resolve => {
         qp.onDidAccept(() => {

@@ -1,8 +1,9 @@
 import * as crypto from 'crypto';
 import * as vscode from 'vscode';
-import { GRADIENTS, SPECIAL_BACKGROUNDS } from './catalog';
+import { GRADIENTS, localize, SPECIAL_BACKGROUNDS } from './catalog';
 import { getConfig } from './config';
 import { currentFontFamily, fontStatuses, refreshFontCache } from './fonts';
+import { getLang, messages, t } from './i18n';
 import { TrackInfo } from './media';
 
 export interface CatalogActions {
@@ -29,7 +30,7 @@ export class CatalogPanel {
             CatalogPanel.current.panel.reveal();
             return;
         }
-        const panel = vscode.window.createWebviewPanel('auraCatalog', 'Aura · Catálogo', vscode.ViewColumn.Active, {
+        const panel = vscode.window.createWebviewPanel('auraCatalog', t('ui.catalogTitle'), vscode.ViewColumn.Active, {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')],
@@ -42,11 +43,20 @@ export class CatalogPanel {
         CatalogPanel.current?.sendState();
     }
 
+    /** Cambió el idioma: se vuelve a generar el HTML del panel. */
+    static relocalize(): void {
+        const current = CatalogPanel.current;
+        if (current) {
+            current.panel.title = t('ui.catalogTitle');
+            current.panel.webview.html = current.html(current.extensionUri);
+        }
+    }
+
     static notifyTrack(track: TrackInfo): void {
         CatalogPanel.current?.panel.webview.postMessage({ type: 'track', track });
     }
 
-    private constructor(private readonly panel: vscode.WebviewPanel, extensionUri: vscode.Uri, private readonly actions: CatalogActions) {
+    private constructor(private readonly panel: vscode.WebviewPanel, private readonly extensionUri: vscode.Uri, private readonly actions: CatalogActions) {
         panel.iconPath = vscode.Uri.joinPath(extensionUri, 'media', 'icon.png');
         panel.webview.html = this.html(extensionUri);
         panel.onDidDispose(() => this.dispose(), null, this.disposables);
@@ -105,8 +115,9 @@ export class CatalogPanel {
     private async sendState(): Promise<void> {
         await this.panel.webview.postMessage({
             type: 'state',
-            gradients: GRADIENTS,
-            specials: SPECIAL_BACKGROUNDS,
+            gradients: GRADIENTS.map(g => localize(g, getLang())),
+            specials: SPECIAL_BACKGROUNDS.map(b => localize(b, getLang())),
+            i18n: messages('ui.'),
             fonts: await fontStatuses(),
             currentFont: currentFontFamily(),
             config: getConfig(),
@@ -122,19 +133,19 @@ export class CatalogPanel {
         const css = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'catalog.css'));
         const js = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'catalog.js'));
         return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${getLang()}">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} data:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="${css}">
-<title>Aura · Catálogo</title>
+<title>${t('ui.catalogTitle')}</title>
 </head>
 <body>
 <header class="hero">
   <div>
     <h1>Aura <span>Code</span></h1>
-    <p>Cristal, fondos y música para tu editor.</p>
+    <p>${t('ui.subtitle')}</p>
   </div>
   <div class="hero-side">
     <div id="now-playing" class="now-playing" hidden></div>
@@ -143,55 +154,60 @@ export class CatalogPanel {
 </header>
 
 <section>
-  <h2>Fondos</h2>
+  <h2>${t('ui.backgrounds')}</h2>
   <div id="specials" class="grid"></div>
   <div id="gradients" class="grid"></div>
 </section>
 
 <section>
-  <h2>Ajustes</h2>
+  <h2>${t('ui.settings')}</h2>
   <div class="settings">
-    <label class="wide">Visibilidad de VS Code sobre tu escritorio (fondo "Mi escritorio") <output id="windowOpacity-val"></output>
+    <label class="wide">${t('ui.visibility')} <output id="windowOpacity-val"></output>
       <input type="range" id="windowOpacity" min="0.3" max="1" step="0.01">
       <span class="presets">
-        <button data-visibility="0.7">Sutil</button>
-        <button data-visibility="0.85">Equilibrado</button>
-        <button data-visibility="0.95">Destacado</button>
-        <button data-visibility="1">Opaco</button>
+        <button data-visibility="0.7">${t('ui.subtle')}</button>
+        <button data-visibility="0.85">${t('ui.balanced')}</button>
+        <button data-visibility="0.95">${t('ui.prominent')}</button>
+        <button data-visibility="1">${t('ui.opaque')}</button>
       </span></label>
-    <label>Cristal de los paneles <output id="glassOpacity-val"></output>
+    <label>${t('ui.glass')} <output id="glassOpacity-val"></output>
       <input type="range" id="glassOpacity" min="0.1" max="1" step="0.01"></label>
-    <label>Oscurecer fondo <output id="backgroundDim-val"></output>
+    <label>${t('ui.dim')} <output id="backgroundDim-val"></output>
       <input type="range" id="backgroundDim" min="0" max="0.95" step="0.01"></label>
-    <label>Desenfoque de imagen <output id="backgroundBlur-val"></output>
+    <label>${t('ui.blur')} <output id="backgroundBlur-val"></output>
       <input type="range" id="backgroundBlur" min="0" max="80" step="1"></label>
-    <label>Reacción a la música <output id="music.reactivity-val"></output>
+    <label>${t('ui.reactivity')} <output id="music.reactivity-val"></output>
       <input type="range" id="music.reactivity" min="0" max="2" step="0.05"></label>
-    <label class="check"><input type="checkbox" id="music.enabled"> Sincronizar con la música</label>
-    <label>Transparencia real de la ventana
+    <label class="check"><input type="checkbox" id="music.enabled"> ${t('ui.syncMusic')}</label>
+    <label>${t('ui.transparency')}
       <select id="transparency">
-        <option value="off">Desactivada</option>
-        <option value="acrylic">Acrílico (Windows 11, experimental)</option>
-        <option value="mica">Mica (Windows 11, experimental)</option>
+        <option value="off">${t('ui.transparencyOff')}</option>
+        <option value="acrylic">${t('ui.transparencyAcrylic')}</option>
+        <option value="mica">${t('ui.transparencyMica')}</option>
+      </select></label>
+    <label>${t('ui.language')}
+      <select id="language">
+        <option value="auto">${t('ui.languageAuto')}</option>
+        <option value="es">Español</option>
+        <option value="en">English</option>
       </select></label>
   </div>
 </section>
 
 <section>
   <div class="section-head">
-    <h2>Fuentes</h2>
+    <h2>${t('ui.fonts')}</h2>
     <span class="head-actions">
-      <button class="link" id="install-file">Instalar desde archivo…</button>
-      <button class="link" id="pick-installed">Usar otra fuente instalada…</button>
-      <button class="link" id="refresh-fonts">Volver a buscar instaladas</button>
+      <button class="link" id="install-file">${t('ui.installFromFile')}</button>
+      <button class="link" id="pick-installed">${t('ui.useOtherFont')}</button>
+      <button class="link" id="refresh-fonts">${t('ui.rescanFonts')}</button>
     </span>
   </div>
   <div id="ui-font" class="ui-font" hidden></div>
-  <h3>Para programar</h3>
+  <h3>${t('ui.fontsForCode')}</h3>
   <div id="fonts" class="fonts"></div>
-  <h3>Videojuegos 🎮</h3>
-  <p class="hint">Fuentes de fans o libres inspiradas en cada juego. Las <em>decorativas</em> quedan mejor en la interfaz (barra lateral, pestañas, menús) para no desalinear el código.
-    Las marcadas con ⚡ se descargan e instalan solas con un clic; luego cierra VS Code por completo para que la reconozca.</p>
+  <h3>${t('ui.fontsGames')}</h3>
+  <p class="hint">${t('ui.gamesHint')}</p>
   <div id="game-fonts" class="fonts"></div>
 </section>
 

@@ -13,6 +13,7 @@ export interface AuraConfig {
     transparency: Transparency;
     windowOpacity: number;
     uiFont: string;
+    language: 'auto' | 'es' | 'en';
     fontApplyToTerminal: boolean;
     port: number;
 }
@@ -30,6 +31,7 @@ export function getConfig(): AuraConfig {
         transparency: c.get('transparency', 'off'),
         windowOpacity: c.get('windowOpacity', 0.92),
         uiFont: c.get('uiFont', ''),
+        language: c.get('language', 'auto'),
         fontApplyToTerminal: c.get('fontApplyToTerminal', true),
         port: c.get('port', 47823),
     };

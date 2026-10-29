@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { WebSocket, WebSocketServer } from 'ws';
 import { findGradient } from './catalog';
 import { AuraConfig, getConfig } from './config';
+import { t } from './i18n';
 import { fileToDataUrl } from './images';
 import { MediaCommand, MediaWatcher, NO_TRACK, TrackInfo, TrackPosition } from './media';
 
@@ -280,7 +281,7 @@ export class AuraHub implements vscode.Disposable {
                 this.imageUrl = file ? await fileToDataUrl(file) : null;
             } catch (err) {
                 this.imageUrl = null;
-                vscode.window.showWarningMessage(`Aura: no se pudo leer la imagen "${file}".`);
+                vscode.window.showWarningMessage(t('bg.imageReadError', String(file)));
                 this.log.appendLine(`[hub] ${err}`);
             }
             this.broadcast(JSON.stringify({ t: 'image', url: this.imageUrl }), 'windows');

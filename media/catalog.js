@@ -1,8 +1,9 @@
 // @ts-check
 (function () {
     const vscode = acquireVsCodeApi();
-    const SAMPLE = 'const vibe = () => "código ✨"; // != === => -> <= >=';
     let state = null;
+    /** Texto traducido que envía la extensión (claves ui.*). */
+    const T = key => (state && state.i18n && state.i18n['ui.' + key]) || key;
 
     const $ = id => /** @type {HTMLElement} */ (document.getElementById(id));
 
@@ -45,10 +46,10 @@
         const box = $('patch-status');
         box.replaceChildren(
             state.patched
-                ? h('div', { class: 'status ok' }, '● Efectos activos',
-                    h('button', { class: 'link', onclick: () => send({ type: 'disable' }) }, 'Desactivar'))
-                : h('div', { class: 'status off' }, '○ Efectos apagados',
-                    h('button', { class: 'primary', onclick: () => send({ type: 'enable' }) }, 'Activar'))
+                ? h('div', { class: 'status ok' }, T('effectsOn'),
+                    h('button', { class: 'link', onclick: () => send({ type: 'disable' }) }, T('deactivate')))
+                : h('div', { class: 'status off' }, T('effectsOff'),
+                    h('button', { class: 'primary', onclick: () => send({ type: 'enable' }) }, T('activate')))
         );
     }
 
@@ -82,14 +83,14 @@
                 ? h('small', { class: 'path' }, state.config.customImage.split(/[\\/]/).pop())
                 : null;
             if (s.id === 'album' && state.platform !== 'win32') {
-                return card(s.id, s.name, 'Por ahora solo en Windows.', preview);
+                return card(s.id, s.name, T('windowsOnly'), preview);
             }
             return card(s.id, s.name, s.description, preview, extra);
         }));
         $('gradients').replaceChildren(...state.gradients.map(g => {
             const preview = h('div', { class: 'preview' + (g.animated ? ' animated' : '') });
             preview.style.background = g.css;
-            return card(g.id, g.name, g.description, preview, g.animated ? h('em', {}, 'animado') : null);
+            return card(g.id, g.name, g.description, preview, g.animated ? h('em', {}, T('animated')) : null);
         }));
     }
 
@@ -121,6 +122,7 @@
         }
         /** @type {HTMLInputElement} */ ($('music.enabled')).checked = state.config.musicEnabled;
         /** @type {HTMLSelectElement} */ ($('transparency')).value = state.config.transparency;
+        /** @type {HTMLSelectElement} */ ($('language')).value = state.config.language;
     }
 
     for (const [id, fmt] of Object.entries(SLIDERS)) {
@@ -135,6 +137,8 @@
         send({ type: 'setSetting', key: 'music.enabled', value: /** @type {HTMLInputElement} */ (e.target).checked }));
     $('transparency').addEventListener('change', e =>
         send({ type: 'setSetting', key: 'transparency', value: /** @type {HTMLSelectElement} */ (e.target).value }));
+    $('language').addEventListener('change', e =>
+        send({ type: 'setSetting', key: 'language', value: /** @type {HTMLSelectElement} */ (e.target).value }));
     $('refresh-fonts').addEventListener('click', () => send({ type: 'refreshFonts' }));
     document.querySelectorAll('[data-visibility]').forEach(b => b.addEventListener('click', e => {
         e.preventDefault();
@@ -153,8 +157,8 @@
         uiBox.hidden = !ui;
         if (ui) {
             uiBox.replaceChildren(
-                h('span', {}, 'Fuente de la interfaz: ', h('strong', {}, state.config.uiFont)),
-                h('button', { class: 'link', onclick: () => send({ type: 'resetUiFont' }) }, 'Restaurar la normal'));
+                h('span', {}, T('uiFont'), h('strong', {}, state.config.uiFont)),
+                h('button', { class: 'link', onclick: () => send({ type: 'resetUiFont' }) }, T('restoreUiFont')));
         }
 
         function row(f) {
@@ -164,30 +168,30 @@
             if (f.installed === false && f.autoInstall) {
                 // Los botones instalan la fuente (descarga automática) y luego la aplican.
                 actions = [
-                    h('button', { class: f.mono === false ? '' : 'primary', title: 'Descargar, instalar y usar en el código', onclick: () => send({ type: 'applyFont', id: f.id, target: 'code' }) }, '⚡ Instalar · Código'),
-                    h('button', { class: f.mono === false ? 'primary' : '', title: 'Descargar, instalar y usar en la interfaz', onclick: () => send({ type: 'applyFont', id: f.id, target: 'ui' }) }, '⚡ Instalar · Interfaz'),
+                    h('button', { class: f.mono === false ? '' : 'primary', title: T('installCodeTitle'), onclick: () => send({ type: 'applyFont', id: f.id, target: 'code' }) }, T('installCode')),
+                    h('button', { class: f.mono === false ? 'primary' : '', title: T('installUiTitle'), onclick: () => send({ type: 'applyFont', id: f.id, target: 'ui' }) }, T('installUi')),
                 ];
             } else if (f.installed === false) {
-                actions = [h('button', { onclick: () => send({ type: 'applyFont', id: f.id, target: 'code' }) }, 'Descargar')];
+                actions = [h('button', { onclick: () => send({ type: 'applyFont', id: f.id, target: 'code' }) }, T('download'))];
             } else {
                 actions = [
-                    inCode ? h('span', { class: 'badge active' }, 'En el código')
-                        : h('button', { class: f.mono === false ? '' : 'primary', onclick: () => send({ type: 'applyFont', id: f.id, target: 'code' }) }, 'Código'),
-                    inUi ? h('span', { class: 'badge active' }, 'En la interfaz')
-                        : h('button', { class: f.mono === false ? 'primary' : '', onclick: () => send({ type: 'applyFont', id: f.id, target: 'ui' }) }, 'Interfaz'),
+                    inCode ? h('span', { class: 'badge active' }, T('inCode'))
+                        : h('button', { class: f.mono === false ? '' : 'primary', onclick: () => send({ type: 'applyFont', id: f.id, target: 'code' }) }, T('code')),
+                    inUi ? h('span', { class: 'badge active' }, T('inUi'))
+                        : h('button', { class: f.mono === false ? 'primary' : '', onclick: () => send({ type: 'applyFont', id: f.id, target: 'ui' }) }, T('ui')),
                 ];
             }
-            const sample = h('div', { class: 'sample' }, f.category === 'game' && f.mono === false ? (f.game || f.name) + ' · ¡Hola, mundo! 123' : SAMPLE);
+            const sample = h('div', { class: 'sample' }, f.category === 'game' && f.mono === false ? (f.game || f.name) + ' · ' + T('hello') : T('sample'));
             sample.style.fontFamily = `'${f.resolvedFamily}', monospace`;
             sample.style.fontVariantLigatures = f.ligatures ? 'normal' : 'none';
             return h('div', { class: 'font' + (inCode || inUi ? ' active' : '') },
                 h('div', { class: 'font-head' },
                     h('strong', {}, f.name),
                     f.game ? h('span', { class: 'badge game' }, f.game) : null,
-                    f.installed === true ? h('span', { class: 'badge' }, 'instalada') : null,
-                    f.installed === false ? h('span', { class: 'badge muted' }, 'no instalada') : null,
-                    f.mono === false ? h('span', { class: 'badge muted' }, 'decorativa') : null,
-                    f.ligatures ? h('span', { class: 'badge muted' }, 'ligaduras') : null,
+                    f.installed === true ? h('span', { class: 'badge' }, T('installed')) : null,
+                    f.installed === false ? h('span', { class: 'badge muted' }, T('notInstalled')) : null,
+                    f.mono === false ? h('span', { class: 'badge muted' }, T('decorative')) : null,
+                    f.ligatures ? h('span', { class: 'badge muted' }, T('ligatures')) : null,
                     h('span', { class: 'spacer' }),
                     ...actions),
                 sample,
