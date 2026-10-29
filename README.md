@@ -16,6 +16,81 @@ Aura Code es una extensión de código abierto que cambia por completo la aparie
 - 🎮 **Fuentes de videojuegos**: Minecraft (Monocraft, Minecraftia), Super Mario, Mario Kart, Zelda, Pokémon, Undertale, arcade y retro. Úsalas en el código o en la interfaz (barra lateral, pestañas, menús).
 - ⚡ **Instalación de fuentes con un clic** (Windows): Aura las descarga de su origen público, las instala solo para tu usuario y te avisa cuando están listas. Sin permisos de administrador.
 
+![VS Code en modo cristal sobre un fondo animado de Wallpaper Engine, con la pestaña Música abajo](docs/images/glass-mode.png)
+<sub>*VS Code en **modo cristal** sobre un fondo de Wallpaper Engine (estilo Minecraft), con la fuente Monocraft y la pestaña **Música** sonando.*</sub>
+
+---
+
+## 📸 Recorrido por las funciones
+
+### 🪟 Modo cristal: tu escritorio en vivo detrás del código
+
+El modo cristal convierte toda la ventana de VS Code en un vidrio: ves tu escritorio — incluidos los **fondos animados de Wallpaper Engine**, que siguen moviéndose — y encima tu código.
+
+**Cómo activarlo**
+
+1. Abre el catálogo (**✨ Aura** en la barra de estado).
+2. En **Fondos** elige **Mi escritorio (cristal)**.
+3. Listo: se aplica al instante, sin reiniciar.
+
+**Cómo ajustarlo a tu gusto**
+
+En la barra de estado aparece **👁 92%**: es cuánto *resalta* VS Code sobre tu escritorio. Haz clic y elige un nivel:
+
+| Nivel | Qué verás |
+| --- | --- |
+| **100 % Opaco** | VS Code normal, sin transparencia |
+| **95 % Destacado** | El código resalta mucho; el escritorio apenas se intuye |
+| **90 % Muy visible** | Buen equilibrio para programar muchas horas |
+| **85 % Equilibrado** | Código y escritorio a partes iguales |
+| **78 % Translúcido** | El escritorio gana protagonismo |
+| **70 % Sutil** | Ideal para lucir un fondo animado |
+| **55 % Fantasma** | Solo para presumir 😎 |
+
+También puedes usar la barra **Visibilidad de VS Code sobre tu escritorio** del catálogo (con botones rápidos *Sutil / Equilibrado / Destacado / Opaco*) o los comandos **Aura: VS Code más visible / más transparente**, a los que puedes asignar un atajo de teclado.
+
+![Ajustes del catálogo: visibilidad del modo cristal, cristal de los paneles y transparencia](docs/images/settings-fonts.png)
+
+**Cosas que conviene saber**
+
+- El modo cristal **solo** se activa con el fondo *Mi escritorio*. Si eliges cualquier otro fondo, la ventana vuelve a ser opaca automáticamente.
+- Windows aplica la misma transparencia a **toda** la ventana, texto incluido. Si te cuesta leer, sube la visibilidad.
+- Se ve **todo** lo que haya detrás de VS Code (también otras ventanas abiertas). Para ver solo tu fondo de pantalla, maximiza VS Code.
+- No modifica archivos de VS Code: es una función de Windows, así que se aplica y se quita al instante.
+- Diferencia con los demás fondos: en *Aurora*, *Carátula de la música*, *Imagen propia*, etc. Aura **dibuja** el fondo dentro de VS Code y vuelve translúcidos los paneles (**Cristal de los paneles**); en *Mi escritorio* es Windows quien deja ver lo que hay **detrás** de la ventana.
+
+### 🎨 Catálogo de fondos
+
+Elige entre fondos especiales y degradados (los marcados como *animado* se mueven lentamente):
+
+- **Carátula de la música**: el fondo se tiñe con los colores del álbum que suena y late al ritmo.
+- **Mi escritorio (cristal)**: el modo cristal explicado arriba.
+- **Imagen propia**: cualquier foto o GIF de tu equipo, con desenfoque y oscurecimiento ajustables.
+- **Sin fondo**: VS Code normal (mantiene tus fuentes).
+- **Degradados**: Aurora, Nebulosa, Neón Tokio, Atardecer, Océano, Bosque, Lava, Vaporwave, Medianoche y Algodón de azúcar.
+
+![Catálogo de fondos de Aura Code](docs/images/catalog.png)
+
+### 🎵 Pestaña Música
+
+Una pestaña nueva en el panel inferior, junto a *Problems*, *Output* y *Terminal*:
+
+- Título y artista de la canción, carátula del álbum y estado (*Playing / Paused*).
+- **Visualizador de frecuencias real**: Aura captura el audio que suena en tu PC y lo separa en 48 bandas (graves → agudos); no es una animación.
+- Barra de progreso con el tiempo y botones **⏮ ⏯ ⏭** que controlan Spotify, YouTube, etc.
+- Estilo **transparente** (con los colores de la carátula) o **retro** en blanco y negro: cámbialo con el cuadrito de la esquina.
+
+![Pestaña Música con visualizador de frecuencias](docs/images/music-tab.png)
+
+### 🎮 Fuentes de videojuegos y para programar
+
+- Pulsa **⚡ Instalar · Código** o **⚡ Instalar · Interfaz**: Aura descarga la fuente, la instala y la aplica. Luego cierra y abre VS Code.
+- **Código** cambia la letra del editor; **Interfaz** cambia la barra lateral, pestañas y menús. Puedes combinarlas (por ejemplo Minecraftia en los menús y Monocraft en el código).
+- Las fuentes *decorativas* (Mario, Zelda, Pokémon…) tienen letras de distinto ancho: quedan mejor en la interfaz.
+- ¿Tienes otra fuente? Usa **Instalar desde archivo…** o **Usar otra fuente instalada…**.
+
+![Fuentes de videojuegos: Monocraft, Minecraftia, Press Start 2P, Super Mario 256 y Mario Kart DS](docs/images/game-fonts.png)
+
 ---
 
 ## 📦 Instalación
