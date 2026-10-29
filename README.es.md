@@ -237,6 +237,68 @@ La API oficial de extensiones **no permite** cambiar el fondo de VS Code. Por es
 
 ---
 
+## 🩺 Solución de problemas
+
+<details>
+<summary><b>"Error loading webview… Could not register service worker: InvalidStateError"</b></summary>
+
+Es un problema conocido de VS Code con su caché interna de *Service Workers* (la usan los paneles de todas las extensiones, no solo los de Aura). Suele pasar cuando VS Code se actualiza estando abierto o cuando se abre como administrador.
+
+1. Cierra **todas** las ventanas de VS Code (*File → Exit*) y vuelve a abrirlo. Muchas veces basta con eso.
+2. Si sigue, cierra VS Code por completo (cierra también cualquier proceso **Code** en el Administrador de tareas), abre **PowerShell** y ejecuta:
+   ```powershell
+   Remove-Item -Recurse -Force "$env:APPDATA\Code\Service Worker"
+   ```
+   Luego abre VS Code. VS Code vuelve a crear esa caché solo; no se pierden extensiones, ajustes ni archivos. (En VS Code Insiders la carpeta es `Code - Insiders`.)
+3. No abras VS Code como administrador en el uso diario.
+</details>
+
+<details>
+<summary><b>"Your Code installation appears to be corrupt" (instalación dañada)</b></summary>
+
+Aparece justo después de activar Aura o de una actualización de VS Code, porque VS Code guarda en memoria la lista de archivos anterior hasta que se reinicia por completo. Cierra **todas** las ventanas (*File → Exit*) y vuelve a abrir VS Code. Si sigue apareciendo, ejecuta otra vez **Aura: Activar efectos** (corrige los checksums) y reinicia.
+</details>
+
+<details>
+<summary><b>Activé Aura pero no se ve el fondo</b></summary>
+
+- Recargar la ventana no basta: cierra VS Code **por completo** (*File → Exit*) y vuelve a abrirlo.
+- Si VS Code instaló una actualización al cerrarse, la actualización borra el parche de Aura. Aura lo detecta y te pide reiniciar una vez más: hazlo.
+- Con el fondo **Mi escritorio (cristal)** Aura no dibuja nada: lo que ves es lo que hay detrás de la ventana. Maximiza VS Code para ver solo tu fondo de pantalla.
+</details>
+
+<details>
+<summary><b>Instalé una fuente pero no aparece</b></summary>
+
+VS Code solo reconoce fuentes nuevas al abrirse: ciérralo por completo y vuelve a abrirlo. Si la terminal dice *"The terminal only supports monospace fonts"*, aplicaste una fuente decorativa: úsala en la interfaz o elige una monoespaciada (Monocraft, Press Start 2P, VT323…).
+</details>
+
+<details>
+<summary><b>"Permiso denegado" / EPERM al activar</b></summary>
+
+VS Code está instalado para todos los usuarios (en `Program Files`). Abre VS Code **como administrador una vez**, activa Aura y luego vuelve a abrirlo normal.
+</details>
+
+<details>
+<summary><b>No me llegan avisos de actualización</b></summary>
+
+- La versión **1.0.0** no los traía: instala una vez el `.vsix` más reciente desde [Releases](https://github.com/IChepe/aura-code/releases/latest) (Extensiones → `···` → *Instalar desde VSIX…*). No hace falta desinstalar la versión vieja y se conservan tus ajustes.
+- Comprueba que `aura.checkForUpdates` esté activado, o ejecuta **Aura: Buscar actualizaciones**.
+- Si la instalaste desde el Marketplace, VS Code actualiza Aura solo.
+</details>
+
+<details>
+<summary><b>La pestaña Música dice "Nada sonando"</b></summary>
+
+La música funciona en Windows 10/11 con apps que muestran su canción en los controles multimedia de Windows (Spotify, navegadores con YouTube, Apple Music…). Comprueba que **Sincronizar con la música** esté activado en el catálogo.
+</details>
+
+<details>
+<summary><b>Quiero deshacer todo</b></summary>
+
+Ejecuta **Aura: Desactivar y restaurar VS Code** y reinicia: VS Code vuelve a quedar idéntico byte a byte al original.
+</details>
+
 ## ⚠️ Limitaciones conocidas
 
 - La música, el cristal sobre el escritorio y la instalación automática de fuentes funcionan en **Windows 10/11**. En macOS y Linux funcionan los fondos, los paneles de cristal y el catálogo de fuentes.

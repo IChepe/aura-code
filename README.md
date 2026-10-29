@@ -237,6 +237,68 @@ Found a security issue? Read [SECURITY.md](SECURITY.md).
 
 ---
 
+## 🩺 Troubleshooting
+
+<details>
+<summary><b>"Error loading webview… Could not register service worker: InvalidStateError"</b></summary>
+
+This is a known VS Code issue with its internal *Service Worker* cache (used by every extension panel, not just Aura's). It usually happens after VS Code updates while open, or when it's run as administrator.
+
+1. Close **all** VS Code windows (*File → Exit*) and open it again. That's often enough.
+2. If it persists, close VS Code completely (also end any **Code** process in Task Manager), open **PowerShell** and run:
+   ```powershell
+   Remove-Item -Recurse -Force "$env:APPDATA\Code\Service Worker"
+   ```
+   Then open VS Code again. VS Code rebuilds that cache by itself; you won't lose extensions, settings or files. (For VS Code Insiders the folder is `Code - Insiders`.)
+3. Don't run VS Code as administrator in everyday use.
+</details>
+
+<details>
+<summary><b>"Your Code installation appears to be corrupt"</b></summary>
+
+It shows up right after enabling Aura or after a VS Code update, because VS Code keeps the old file list in memory until it fully restarts. Close **all** windows (*File → Exit*) and open VS Code again. If it keeps appearing, run **Aura: Enable effects** once more (it fixes the checksums) and restart.
+</details>
+
+<details>
+<summary><b>I activated Aura but the background doesn't show</b></summary>
+
+- Reloading the window isn't enough: close VS Code **completely** (*File → Exit*) and open it again.
+- If VS Code installed an update while closing, the update removes Aura's patch. Aura detects it and asks you to restart once more: do it.
+- With the **My desktop (glass)** background, Aura doesn't draw anything: what you see is whatever is behind the window. Maximize VS Code to see only your wallpaper.
+</details>
+
+<details>
+<summary><b>I installed a font but it doesn't appear</b></summary>
+
+VS Code only detects new fonts when it starts: close it completely and open it again. If the terminal says *"The terminal only supports monospace fonts"*, you applied a decorative font: use it for the interface instead, or choose a monospaced one (Monocraft, Press Start 2P, VT323…).
+</details>
+
+<details>
+<summary><b>"Permission denied" / EPERM when activating</b></summary>
+
+VS Code is installed for all users (in `Program Files`). Run VS Code **as administrator once**, activate Aura, then go back to opening it normally.
+</details>
+
+<details>
+<summary><b>I don't get update notifications</b></summary>
+
+- Version **1.0.0** didn't include them: install the latest `.vsix` from [Releases](https://github.com/IChepe/aura-code/releases/latest) once (Extensions → `···` → *Install from VSIX…*). You don't need to uninstall the old version and your settings are kept.
+- Check that `aura.checkForUpdates` is on, or run **Aura: Check for updates**.
+- If you installed from the Marketplace, VS Code updates Aura by itself.
+</details>
+
+<details>
+<summary><b>The Music tab says "Nothing playing"</b></summary>
+
+Music works on Windows 10/11 with apps that show their song in the Windows media controls (Spotify, browsers with YouTube, Apple Music…). Check that **Sync with music** is on in the catalog.
+</details>
+
+<details>
+<summary><b>I want to undo everything</b></summary>
+
+Run **Aura: Disable and restore VS Code** and restart: VS Code goes back to being byte-for-byte identical to the original.
+</details>
+
 ## ⚠️ Known limitations
 
 - Music, glass over the desktop and automatic font installs work on **Windows 10/11**. On macOS and Linux, backgrounds, glass panels and the font catalog work.
