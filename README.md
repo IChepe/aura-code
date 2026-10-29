@@ -1,6 +1,15 @@
-# Aura Code ✨
+<h1 align="center">✨ Aura Code — Visual Studio Code Theme Changer 🎨</h1>
 
-**Convierte VS Code en una ventana de cristal que respira con tu música.**
+<p align="center">
+  <b>Transforma VS Code por completo: modo cristal sobre tu escritorio, fondos animados, fuentes de videojuegos y un reproductor de música que late con tus canciones.</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/IChepe/aura-code/releases/latest"><img alt="Descargar" src="https://img.shields.io/github/v/release/IChepe/aura-code?label=descargar&style=for-the-badge&color=6a3093"></a>
+  <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-0f9b8e?style=for-the-badge"></a>
+  <img alt="VS Code 1.90+" src="https://img.shields.io/badge/VS%20Code-1.90%2B-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white">
+  <img alt="Windows 10/11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white">
+</p>
 
 > 🛡️ **Versión oficial.** Este repositorio — [github.com/IChepe/aura-code](https://github.com/IChepe/aura-code) — es la **única fuente oficial** de Aura Code, creada por [**IChepe**](https://github.com/IChepe).
 > En el Marketplace de VS Code la versión oficial es la del publicador **IChepe** (`IChepe.aura-code`).
