@@ -133,7 +133,7 @@
         let moving = false;
         for (let i = 0; i < shown.length; i++) {
             const t = track && track.playing ? (target[i] || 0) / 100 : 0;
-            shown[i] += (t - shown[i]) * (t > shown[i] ? 0.6 : 0.18);
+            shown[i] += (t - shown[i]) * (t > shown[i] ? 0.65 : 0.32);
             if (Math.abs(t - shown[i]) > 0.002) {
                 moving = true;
             }

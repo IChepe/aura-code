@@ -10,7 +10,7 @@
 #
 # Cada pieza (órdenes, medidor, espectro, metadatos) se carga por separado: si una falla en un equipo
 # (antivirus, políticas, drivers de audio raros), las demás siguen funcionando.
-param([int]$IntervalMs = 40, [int]$Bands = 48, [switch]$NoSpectrum)
+param([int]$IntervalMs = 25, [int]$Bands = 48, [switch]$NoSpectrum)
 
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -200,6 +200,10 @@ public static class AuraSpectrum {
     public static volatile string Format = "";
     /// Dispositivo a capturar (id de Core Audio); vacío = salida predeterminada.
     public static volatile string TargetId = "";
+    /// true = este hilo envía las barras en cuanto calcula cada FFT (sin esperar al bucle de PowerShell,
+    /// que se frena al leer la canción o la carátula). El script lo apaga cuando usa el respaldo.
+    public static volatile bool EmitEnabled = true;
+    static string lastLine = "";
 
     public static void Start(int count) {
         if (running) return;
@@ -308,7 +312,7 @@ public static class AuraSpectrum {
                     int zeros = rate / 100;
                     for (int i = 0; i < zeros; i++) { ring[pos] = 0; pos = (pos + 1) % FFT; }
                 }
-                if (clock.ElapsedMilliseconds - lastFft >= 30) {
+                if (clock.ElapsedMilliseconds - lastFft >= 15) {
                     lastFft = clock.ElapsedMilliseconds;
                     Analyze(ring, pos, rate);
                 }
@@ -362,11 +366,21 @@ public static class AuraSpectrum {
             db += 6.0 * b / count;
             next[b] = (float)Math.Max(0, Math.Min(1, (db + 62) / 56));
         }
+        var line = new System.Text.StringBuilder("{\"t\":\"s\",\"v\":[");
         lock (gate) {
             for (int b = 0; b < count; b++) {
-                // Subida inmediata, bajada suave.
-                bands[b] = Math.Max(next[b], bands[b] * 0.82f);
+                // Subida inmediata y bajada rápida: entre golpe y golpe las barras tienen tiempo de caer.
+                bands[b] = Math.Max(next[b], bands[b] * 0.72f);
+                if (b > 0) line.Append(',');
+                line.Append((int)Math.Round(Math.Min(1f, bands[b]) * 100));
             }
+        }
+        line.Append("]}");
+        string text = line.ToString();
+        if (EmitEnabled && text != lastLine) {
+            lastLine = text;
+            Console.Out.WriteLine(text);
+            Console.Out.Flush();
         }
     }
 
@@ -531,7 +545,10 @@ while ($true) {
         }
     }
 
+    # Normalmente el hilo de captura envía las barras él mismo; este bucle solo envía las de respaldo
+    # (cuando la captura falla o da silencio mientras hay sonido).
     $values = $null
+    $fallback = $null
     $spectrumError = if ($spectrumOk) { [string][AuraSpectrum]::LastError } else { 'no disponible' }
     if ($spectrumOk -and $spectrumError -eq '') {
         $values = [AuraSpectrum]::Bands()
@@ -541,7 +558,7 @@ while ($true) {
         if ($loudest -le 3 -and $peak -gt 0.05) {
             if ($silentSince -lt 0) { $silentSince = $now }
             if ($now - $silentSince -gt 1500) {
-                $values = Get-FallbackBands $peak
+                $fallback = Get-FallbackBands $peak
                 if (-not $silenceReported) {
                     $silenceReported = $true
                     Emit @{ t = 'info'; where = 'spectrum'; msg = "la captura da silencio pero hay sonido (nivel $peak): las barras usan el volumen" }
@@ -549,7 +566,7 @@ while ($true) {
             }
         } else {
             $silentSince = -1
-$silenceReported = $false
+            $silenceReported = $false
         }
         $format = [string][AuraSpectrum]::Format
         if ($format -ne '' -and $format -ne $reportedFormat) {
@@ -557,8 +574,9 @@ $silenceReported = $false
             Emit @{ t = 'info'; where = 'spectrum'; msg = "capturando audio ($format)" }
         }
     } elseif ($meterOk) {
-        $values = Get-FallbackBands $peak
+        $fallback = Get-FallbackBands $peak
     }
+    if ($spectrumOk) { [AuraSpectrum]::EmitEnabled = ($null -eq $fallback) }
     # Cada error de captura distinto se informa una vez (aparece en Output → Aura Code).
     if ($spectrumOk -and $spectrumError -ne $lastSpectrumError) {
         $lastSpectrumError = $spectrumError
@@ -566,8 +584,8 @@ $silenceReported = $false
             Emit @{ t = 'error'; where = 'spectrum'; msg = "$spectrumError (se usa el volumen como respaldo)" }
         }
     }
-    if ($null -ne $values) {
-        $spectrum = [string]::Join(',', $values)
+    if ($null -ne $fallback) {
+        $spectrum = [string]::Join(',', $fallback)
         if ($spectrum -ne $lastSpectrum) {
             [Console]::Out.WriteLine('{"t":"s","v":[' + $spectrum + ']}')
             $lastSpectrum = $spectrum

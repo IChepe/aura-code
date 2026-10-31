@@ -1,5 +1,13 @@
 # Changelog / Cambios
 
+## 1.1.3
+
+🇬🇧
+- **The visualizer follows the beat much more closely.** Bars are now sent straight from the audio capture thread about 60 times per second (before: ~20, with pauses of up to 90 ms while reading the song info), and they fall faster between hits so every kick drum is visible. Measured on a 135 BPM song, the bass bars now pulse at 133 BPM.
+
+🇪🇸
+- **El visualizador sigue el ritmo mucho mejor.** Las barras se envían directamente desde el hilo de captura de audio unas 60 veces por segundo (antes: ~20, con pausas de hasta 90 ms al leer la información de la canción) y bajan más rápido entre golpes, así se nota cada bombo. Medido con una canción de 135 BPM, las barras de graves laten a 133 BPM.
+
 ## 1.1.2
 
 🇬🇧
