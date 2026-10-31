@@ -294,6 +294,14 @@ Music works on Windows 10/11 with apps that show their song in the Windows media
 </details>
 
 <details>
+<summary><b>The song shows up but the visualizer bars stay flat</b></summary>
+
+- Update to the latest version (**1.1.1** or later): it supports every audio format and, if the spectrum can't be captured, the bars move with the volume instead.
+- Aura listens to the **default Windows output device**. If your browser or player sends sound to a different device (for example headphones chosen only inside the app), set that device as default in Windows (*Settings → System → Sound*) or set the app to use the default device.
+- Open *View → Output* and pick **Aura Code**: lines starting with `[media] spectrum:` show the captured audio format or the exact error. Include them if you report the problem.
+</details>
+
+<details>
 <summary><b>I want to undo everything</b></summary>
 
 Run **Aura: Disable and restore VS Code** and restart: VS Code goes back to being byte-for-byte identical to the original.

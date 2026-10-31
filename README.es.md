@@ -294,6 +294,14 @@ La música funciona en Windows 10/11 con apps que muestran su canción en los co
 </details>
 
 <details>
+<summary><b>Aparece la canción pero las barras del visualizador no se mueven</b></summary>
+
+- Actualiza a la última versión (**1.1.1** o posterior): acepta todos los formatos de audio y, si no se puede capturar el espectro, las barras se mueven con el volumen.
+- Aura escucha el **dispositivo de salida predeterminado de Windows**. Si tu navegador o reproductor manda el sonido a otro dispositivo (por ejemplo unos audífonos elegidos solo dentro de la app), ponlo como predeterminado en Windows (*Configuración → Sistema → Sonido*) o configura la app para usar el predeterminado.
+- Abre *Ver → Salida* (*View → Output*) y elige **Aura Code**: las líneas que empiezan con `[media] spectrum:` muestran el formato de audio capturado o el error exacto. Inclúyelas si reportas el problema.
+</details>
+
+<details>
 <summary><b>Quiero deshacer todo</b></summary>
 
 Ejecuta **Aura: Desactivar y restaurar VS Code** y reinicia: VS Code vuelve a quedar idéntico byte a byte al original.

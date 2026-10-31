@@ -7,7 +7,10 @@
 #   {"t":"art","mime":"image/png","b64":..} carátula del álbum
 #   {"t":"error","where":...,"msg":...}
 # Lee órdenes por stdin, una por línea: playpause | next | prev | ping (responde {"t":"pong"})
-param([int]$IntervalMs = 40, [int]$Bands = 48)
+#
+# Cada pieza (órdenes, medidor, espectro, metadatos) se carga por separado: si una falla en un equipo
+# (antivirus, políticas, drivers de audio raros), las demás siguen funcionando.
+param([int]$IntervalMs = 40, [int]$Bands = 48, [switch]$NoSpectrum)
 
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -18,15 +21,47 @@ function Emit($obj) {
     [Console]::Out.Flush()
 }
 
-# --- Audio nativo: medidor de pico, espectro (captura loopback + FFT) y órdenes por stdin ---
-$audioOk = $true
+# --- Órdenes por stdin (botones del reproductor) -------------------------------
+$inputOk = $true
 try {
     Add-Type -TypeDefinition @"
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Threading;
+
+/// Lee órdenes de stdin en segundo plano (el bucle principal no puede bloquearse esperando).
+public static class AuraInput {
+    static readonly ConcurrentQueue<string> queue = new ConcurrentQueue<string>();
+
+    public static void Start() {
+        var t = new Thread(() => {
+            try {
+                string line;
+                while ((line = Console.In.ReadLine()) != null) queue.Enqueue(line.Trim());
+            } catch { }
+        });
+        t.IsBackground = true;
+        t.Start();
+    }
+
+    public static string Next() {
+        string s;
+        return queue.TryDequeue(out s) ? s : null;
+    }
+}
+"@
+    [AuraInput]::Start()
+} catch {
+    $inputOk = $false
+    Emit @{ t = 'error'; where = 'input'; msg = $_.Exception.Message }
+}
+
+# --- Medidor de pico (Core Audio) ---------------------------------------------
+$meterOk = $true
+try {
+    Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
 
 [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
 class AuraMMDeviceEnumerator {}
@@ -45,6 +80,56 @@ interface IAuraMMDevice {
 [Guid("C02216F6-8C67-4B5B-9D00-D008E73E0064"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IAuraAudioMeterInformation {
     int GetPeakValue(out float peak);
+}
+
+public static class AuraMeter {
+    static IAuraAudioMeterInformation meter;
+
+    public static float Peak() {
+        if (meter == null) {
+            var enumerator = (IAuraMMDeviceEnumerator)new AuraMMDeviceEnumerator();
+            IAuraMMDevice device;
+            Marshal.ThrowExceptionForHR(enumerator.GetDefaultAudioEndpoint(0, 1, out device));
+            Guid iid = typeof(IAuraAudioMeterInformation).GUID;
+            object o;
+            Marshal.ThrowExceptionForHR(device.Activate(ref iid, 23, IntPtr.Zero, out o));
+            meter = (IAuraAudioMeterInformation)o;
+        }
+        float peak;
+        Marshal.ThrowExceptionForHR(meter.GetPeakValue(out peak));
+        return peak;
+    }
+
+    public static void Reset() { meter = null; }
+}
+"@
+} catch {
+    $meterOk = $false
+    Emit @{ t = 'error'; where = 'meter'; msg = $_.Exception.Message }
+}
+
+# --- Espectro: captura loopback (WASAPI) + FFT --------------------------------
+$spectrumOk = -not $NoSpectrum
+if ($spectrumOk) {
+    try {
+        Add-Type -TypeDefinition @"
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Threading;
+
+[ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
+class AuraSpecEnumerator {}
+
+[Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IAuraSpecEnumerator {
+    int EnumAudioEndpoints(int dataFlow, int stateMask, out IntPtr devices);
+    int GetDefaultAudioEndpoint(int dataFlow, int role, out IAuraSpecDevice endpoint);
+}
+
+[Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IAuraSpecDevice {
+    int Activate(ref Guid iid, int clsCtx, IntPtr activationParams, [MarshalAs(UnmanagedType.IUnknown)] out object iface);
 }
 
 [Guid("1CB9AD4C-DBFA-4c32-B178-C2F568A703B2"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -70,27 +155,6 @@ interface IAuraAudioCaptureClient {
     int GetNextPacketSize(out uint frames);
 }
 
-public static class AuraMeter {
-    static IAuraAudioMeterInformation meter;
-
-    public static float Peak() {
-        if (meter == null) {
-            var enumerator = (IAuraMMDeviceEnumerator)new AuraMMDeviceEnumerator();
-            IAuraMMDevice device;
-            Marshal.ThrowExceptionForHR(enumerator.GetDefaultAudioEndpoint(0, 1, out device));
-            Guid iid = typeof(IAuraAudioMeterInformation).GUID;
-            object o;
-            Marshal.ThrowExceptionForHR(device.Activate(ref iid, 23, IntPtr.Zero, out o));
-            meter = (IAuraAudioMeterInformation)o;
-        }
-        float peak;
-        Marshal.ThrowExceptionForHR(meter.GetPeakValue(out peak));
-        return peak;
-    }
-
-    public static void Reset() { meter = null; }
-}
-
 /// Captura lo que suena en la salida por defecto (loopback de WASAPI) y calcula barras por frecuencia.
 public static class AuraSpectrum {
     const int FFT = 2048;
@@ -98,7 +162,9 @@ public static class AuraSpectrum {
     static volatile bool running;
     static float[] bands = new float[0];
     static readonly object gate = new object();
-    public static string LastError = "";
+    /// Último error de captura ("" si funciona). Si no está vacío, el script usa el volumen como respaldo.
+    public static volatile string LastError = "";
+    public static volatile string Format = "";
 
     public static void Start(int count) {
         if (running) return;
@@ -120,13 +186,13 @@ public static class AuraSpectrum {
     static void Loop() {
         while (running) {
             try { Capture(); }
-            catch (Exception e) { LastError = e.Message; Thread.Sleep(2000); }
+            catch (Exception e) { LastError = e.Message; Thread.Sleep(3000); }
         }
     }
 
     static void Capture() {
-        var enumerator = (IAuraMMDeviceEnumerator)new AuraMMDeviceEnumerator();
-        IAuraMMDevice device;
+        var enumerator = (IAuraSpecEnumerator)new AuraSpecEnumerator();
+        IAuraSpecDevice device;
         Marshal.ThrowExceptionForHR(enumerator.GetDefaultAudioEndpoint(0, 1, out device));
         Guid iid = typeof(IAuraAudioClient).GUID;
         object o;
@@ -136,16 +202,22 @@ public static class AuraSpectrum {
         IntPtr fmt;
         Marshal.ThrowExceptionForHR(client.GetMixFormat(out fmt));
         int tag = (ushort)Marshal.ReadInt16(fmt, 0);
-        int channels = Marshal.ReadInt16(fmt, 2);
+        int channels = Math.Max(1, (int)Marshal.ReadInt16(fmt, 2));
         int rate = Marshal.ReadInt32(fmt, 4);
-        int bits = Marshal.ReadInt16(fmt, 14);
+        int blockAlign = Marshal.ReadInt16(fmt, 12);
+        // Tamaño real de cada muestra en memoria (por ejemplo 24 bits válidos dentro de 32).
+        int bytesPerSample = Math.Max(1, blockAlign / channels);
         bool isFloat = tag == 3;
         if (tag == 0xFFFE) {
             var g = new byte[16];
             Marshal.Copy(fmt + 24, g, 0, 16);
             isFloat = new Guid(g) == FloatFormat;
         }
-        if (!isFloat && bits != 16) throw new Exception("Formato de audio no soportado: " + bits + " bits");
+        if (isFloat && bytesPerSample != 4) throw new Exception("Formato de audio no soportado: float de " + (bytesPerSample * 8) + " bits");
+        if (!isFloat && bytesPerSample != 2 && bytesPerSample != 3 && bytesPerSample != 4) {
+            throw new Exception("Formato de audio no soportado: PCM de " + (bytesPerSample * 8) + " bits");
+        }
+        Format = (isFloat ? "float" : "pcm") + (bytesPerSample * 8) + " " + channels + "ch " + rate + "Hz";
 
         // 0x00020000 = AUDCLNT_STREAMFLAGS_LOOPBACK; búfer de 1 s.
         Marshal.ThrowExceptionForHR(client.Initialize(0, 0x00020000, 10000000, 0, fmt, IntPtr.Zero));
@@ -154,11 +226,11 @@ public static class AuraSpectrum {
         Marshal.ThrowExceptionForHR(client.GetService(ref cid, out co));
         var capture = (IAuraAudioCaptureClient)co;
         Marshal.ThrowExceptionForHR(client.Start());
+        LastError = "";
 
         var ring = new float[FFT];
         int pos = 0;
-        var floats = new float[0];
-        var shorts = new short[0];
+        var raw = new byte[0];
         var clock = Stopwatch.StartNew();
         long lastFft = 0, lastData = 0;
         try {
@@ -170,20 +242,17 @@ public static class AuraSpectrum {
                 while (packet > 0) {
                     IntPtr data; uint frames, flags; ulong p1, p2;
                     Marshal.ThrowExceptionForHR(capture.GetBuffer(out data, out frames, out flags, out p1, out p2));
-                    int n = (int)frames * channels;
+                    int bytes = (int)frames * blockAlign;
                     bool silent = (flags & 2) != 0;
-                    if (isFloat) {
-                        if (floats.Length < n) floats = new float[n];
-                        if (!silent) Marshal.Copy(data, floats, 0, n);
-                    } else {
-                        if (shorts.Length < n) shorts = new short[n];
-                        if (!silent) Marshal.Copy(data, shorts, 0, n);
+                    if (!silent) {
+                        if (raw.Length < bytes) raw = new byte[bytes];
+                        Marshal.Copy(data, raw, 0, bytes);
                     }
                     for (int f = 0; f < frames; f++) {
                         float s = 0;
                         if (!silent) {
                             for (int c = 0; c < channels; c++) {
-                                s += isFloat ? floats[f * channels + c] : shorts[f * channels + c] / 32768f;
+                                s += Sample(raw, f * blockAlign + c * bytesPerSample, bytesPerSample, isFloat);
                             }
                             s /= channels;
                         }
@@ -209,6 +278,16 @@ public static class AuraSpectrum {
             Marshal.FreeCoTaskMem(fmt);
             Marshal.ReleaseComObject(capture);
             Marshal.ReleaseComObject(client);
+        }
+    }
+
+    /// Una muestra en [-1, 1] desde float32 o PCM entero de 16, 24 o 32 bits (little endian).
+    static float Sample(byte[] b, int i, int size, bool isFloat) {
+        if (isFloat) return BitConverter.ToSingle(b, i);
+        switch (size) {
+            case 2: return BitConverter.ToInt16(b, i) / 32768f;
+            case 3: return ((b[i] << 8) | (b[i + 1] << 16) | (b[i + 2] << 24)) / 2147483648f;
+            default: return BitConverter.ToInt32(b, i) / 2147483648f;
         }
     }
 
@@ -281,33 +360,12 @@ public static class AuraSpectrum {
         }
     }
 }
-
-/// Lee órdenes de stdin en segundo plano (el bucle principal no puede bloquearse esperando).
-public static class AuraInput {
-    static readonly ConcurrentQueue<string> queue = new ConcurrentQueue<string>();
-
-    public static void Start() {
-        var t = new Thread(() => {
-            try {
-                string line;
-                while ((line = Console.In.ReadLine()) != null) queue.Enqueue(line.Trim());
-            } catch { }
-        });
-        t.IsBackground = true;
-        t.Start();
-    }
-
-    public static string Next() {
-        string s;
-        return queue.TryDequeue(out s) ? s : null;
-    }
-}
 "@
-    [AuraSpectrum]::Start($Bands)
-    [AuraInput]::Start()
-} catch {
-    $audioOk = $false
-    Emit @{ t = 'error'; where = 'audio'; msg = $_.Exception.Message }
+        [AuraSpectrum]::Start($Bands)
+    } catch {
+        $spectrumOk = $false
+        Emit @{ t = 'error'; where = 'spectrum'; msg = $_.Exception.Message }
+    }
 }
 
 # --- Windows Media Controls (título, artista, carátula, controles) ------------
@@ -365,46 +423,88 @@ function Invoke-Command-Line($cmd) {
     if ($null -ne $op) { $null = Await $op ([bool]) }
 }
 
+# --- Respaldo: barras aproximadas con el volumen ----------------------------------
+# Si el espectro no se puede capturar, las barras se mueven con el nivel de audio
+# (graves más altos que agudos y un poco de variación) para que el visualizador no quede plano.
+$rand = New-Object System.Random
+$fallbackBands = New-Object double[] $Bands
+function Get-FallbackBands([double]$peak) {
+    $out = New-Object int[] $Bands
+    for ($i = 0; $i -lt $Bands; $i++) {
+        $shape = 1.0 - 0.65 * ($i / [Math]::Max(1, $Bands - 1))
+        $target = [Math]::Min(1.0, $peak * 1.6 * $shape * (0.55 + 0.45 * $rand.NextDouble()))
+        $fallbackBands[$i] = [Math]::Max($target, $fallbackBands[$i] * 0.8)
+        $out[$i] = [int][Math]::Round($fallbackBands[$i] * 100)
+    }
+    return $out
+}
+
 # --- Bucle principal -----------------------------------------------------------
 $sw = [Diagnostics.Stopwatch]::StartNew()
 $lastLevel = -1.0
+$peak = 0.0
 $lastMedia = -100000
 $lastMeterReset = 0
 $lastKey = $null
 $lastTrackKey = $null
 $lastPos = ''
 $lastSpectrum = ''
+$lastSpectrumError = ''
+$reportedFormat = ''
 $artPending = 0
 $epoch = [DateTimeOffset]::new(1970, 1, 1, 0, 0, 0, [TimeSpan]::Zero)
 
 while ($true) {
     $now = $sw.ElapsedMilliseconds
 
-    if ($audioOk) {
-        # Órdenes de la extensión (botones del reproductor).
+    # Órdenes de la extensión (botones del reproductor).
+    if ($inputOk) {
         while ($null -ne ($cmd = [AuraInput]::Next())) {
             try { Invoke-Command-Line $cmd; $lastMedia = -100000 } catch { Emit @{ t = 'error'; where = 'cmd'; msg = $_.Exception.Message } }
         }
+    }
 
+    if ($meterOk) {
         # Re-adquiere el medidor cada 5 s para seguir cambios de salida (audífonos, bocinas...).
         if ($now - $lastMeterReset -gt 5000) { [AuraMeter]::Reset(); $lastMeterReset = $now }
         try {
-            $p = [Math]::Round([double][AuraMeter]::Peak(), 3)
-            if ([Math]::Abs($p - $lastLevel) -ge 0.01 -or ($p -eq 0 -and $lastLevel -ne 0)) {
-                [Console]::Out.WriteLine('{"t":"l","v":' + $p.ToString('0.000', $inv) + '}')
-                $lastLevel = $p
+            $peak = [Math]::Round([double][AuraMeter]::Peak(), 3)
+            if ([Math]::Abs($peak - $lastLevel) -ge 0.01 -or ($peak -eq 0 -and $lastLevel -ne 0)) {
+                [Console]::Out.WriteLine('{"t":"l","v":' + $peak.ToString('0.000', $inv) + '}')
+                $lastLevel = $peak
             }
         } catch {
             [AuraMeter]::Reset()
         }
+    }
 
-        $spectrum = [string]::Join(',', [AuraSpectrum]::Bands())
+    $values = $null
+    $spectrumError = if ($spectrumOk) { [string][AuraSpectrum]::LastError } else { 'no disponible' }
+    if ($spectrumOk -and $spectrumError -eq '') {
+        $values = [AuraSpectrum]::Bands()
+        $format = [string][AuraSpectrum]::Format
+        if ($format -ne '' -and $format -ne $reportedFormat) {
+            $reportedFormat = $format
+            Emit @{ t = 'info'; where = 'spectrum'; msg = "capturando audio ($format)" }
+        }
+    } elseif ($meterOk) {
+        $values = Get-FallbackBands $peak
+    }
+    # Cada error de captura distinto se informa una vez (aparece en Output → Aura Code).
+    if ($spectrumOk -and $spectrumError -ne $lastSpectrumError) {
+        $lastSpectrumError = $spectrumError
+        if ($spectrumError -ne '') {
+            Emit @{ t = 'error'; where = 'spectrum'; msg = "$spectrumError (se usa el volumen como respaldo)" }
+        }
+    }
+    if ($null -ne $values) {
+        $spectrum = [string]::Join(',', $values)
         if ($spectrum -ne $lastSpectrum) {
             [Console]::Out.WriteLine('{"t":"s","v":[' + $spectrum + ']}')
             $lastSpectrum = $spectrum
         }
-        [Console]::Out.Flush()
     }
+    [Console]::Out.Flush()
 
     if ($smtcOk -and $null -ne $mgr -and ($now - $lastMedia -gt 1000)) {
         $lastMedia = $now

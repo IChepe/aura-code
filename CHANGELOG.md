@@ -1,5 +1,15 @@
 # Changelog / Cambios
 
+## 1.1.1
+
+🇬🇧
+- **Visualizer fix**: the Music tab bars stayed flat on some PCs. The audio capture now supports every output format (16, 24 and 32-bit PCM, not just float), each part of the music watcher loads separately so one failure no longer disables the rest, and if the spectrum can't be captured the bars move with the volume instead.
+- Capture errors and the detected audio format are logged in *Output → Aura Code* to help diagnose problems.
+
+🇪🇸
+- **Arreglo del visualizador**: en algunos equipos las barras de la pestaña Música no se movían. La captura de audio ahora acepta todos los formatos de salida (PCM de 16, 24 y 32 bits, no solo float), cada parte del observador de música se carga por separado para que un fallo no desactive las demás y, si no se puede capturar el espectro, las barras se mueven con el volumen.
+- Los errores de captura y el formato de audio detectado se registran en *Salida → Aura Code* para ayudar a diagnosticar problemas.
+
 ## 1.1.0
 
 🇬🇧

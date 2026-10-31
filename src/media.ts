@@ -110,6 +110,7 @@ export class MediaWatcher extends EventEmitter {
                 this.emit('art', `data:${sniffMime(msg.b64, msg.mime)};base64,${msg.b64}`);
                 break;
             case 'error':
+            case 'info':
                 this.log(`[media] ${msg.where}: ${msg.msg}`);
                 break;
         }
