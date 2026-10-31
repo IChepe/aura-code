@@ -188,5 +188,7 @@
     }
 
     new ResizeObserver(() => draw()).observe(canvas);
+    window.addEventListener('error', e =>
+        vscode.postMessage({ type: 'clientError', message: String(e.error && e.error.stack || e.message) }));
     vscode.postMessage({ type: 'ready' });
 })();

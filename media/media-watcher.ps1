@@ -61,20 +61,26 @@ $meterOk = $true
 try {
     Add-Type -TypeDefinition @"
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
-
-[ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
-class AuraMMDeviceEnumerator {}
 
 [Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IAuraMMDeviceEnumerator {
-    int EnumAudioEndpoints(int dataFlow, int stateMask, out IntPtr devices);
+    int EnumAudioEndpoints(int dataFlow, int stateMask, out IAuraMMDeviceCollection devices);
     int GetDefaultAudioEndpoint(int dataFlow, int role, out IAuraMMDevice endpoint);
+}
+
+[Guid("0BD7A1BE-7A1A-44DB-8397-CC5392387B5E"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IAuraMMDeviceCollection {
+    int GetCount(out uint count);
+    int Item(uint index, out IAuraMMDevice device);
 }
 
 [Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IAuraMMDevice {
     int Activate(ref Guid iid, int clsCtx, IntPtr activationParams, [MarshalAs(UnmanagedType.IUnknown)] out object iface);
+    int OpenPropertyStore(int access, out IntPtr store);
+    int GetId([MarshalAs(UnmanagedType.LPWStr)] out string id);
 }
 
 [Guid("C02216F6-8C67-4B5B-9D00-D008E73E0064"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -82,25 +88,54 @@ interface IAuraAudioMeterInformation {
     int GetPeakValue(out float peak);
 }
 
+/// Mide el volumen de TODAS las salidas activas: la música puede sonar por un dispositivo que no es
+/// el predeterminado (audífonos elegidos solo en el navegador, dispositivos virtuales, etc.).
 public static class AuraMeter {
-    static IAuraAudioMeterInformation meter;
+    static List<KeyValuePair<string, IAuraAudioMeterInformation>> meters;
+    static string defaultId = "";
+    /// Dispositivo que está sonando (el predeterminado si suena; si no, el más fuerte). Lo usa el espectro.
+    public static string ActiveId = "";
 
     public static float Peak() {
-        if (meter == null) {
-            var enumerator = (IAuraMMDeviceEnumerator)new AuraMMDeviceEnumerator();
-            IAuraMMDevice device;
-            Marshal.ThrowExceptionForHR(enumerator.GetDefaultAudioEndpoint(0, 1, out device));
-            Guid iid = typeof(IAuraAudioMeterInformation).GUID;
-            object o;
-            Marshal.ThrowExceptionForHR(device.Activate(ref iid, 23, IntPtr.Zero, out o));
-            meter = (IAuraAudioMeterInformation)o;
+        if (meters == null) Load();
+        float best = 0, def = 0;
+        string bestId = null;
+        foreach (var kv in meters) {
+            float p;
+            if (kv.Value.GetPeakValue(out p) != 0) continue;
+            if (kv.Key == defaultId) def = p;
+            if (p > best) { best = p; bestId = kv.Key; }
         }
-        float peak;
-        Marshal.ThrowExceptionForHR(meter.GetPeakValue(out peak));
-        return peak;
+        if (def > 0.01f || bestId == null || best <= 0.01f) { ActiveId = defaultId; return def; }
+        ActiveId = bestId;
+        return best;
     }
 
-    public static void Reset() { meter = null; }
+    static void Load() {
+        var list = new List<KeyValuePair<string, IAuraAudioMeterInformation>>();
+        var enumerator = (IAuraMMDeviceEnumerator)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")));
+        IAuraMMDevice def;
+        if (enumerator.GetDefaultAudioEndpoint(0, 1, out def) == 0) def.GetId(out defaultId);
+        IAuraMMDeviceCollection devices;
+        Marshal.ThrowExceptionForHR(enumerator.EnumAudioEndpoints(0, 1, out devices)); // salidas activas
+        uint count;
+        devices.GetCount(out count);
+        Guid iid = typeof(IAuraAudioMeterInformation).GUID;
+        for (uint i = 0; i < count; i++) {
+            try {
+                IAuraMMDevice device;
+                if (devices.Item(i, out device) != 0) continue;
+                string id;
+                device.GetId(out id);
+                object o;
+                if (device.Activate(ref iid, 23, IntPtr.Zero, out o) != 0) continue;
+                list.Add(new KeyValuePair<string, IAuraAudioMeterInformation>(id, (IAuraAudioMeterInformation)o));
+            } catch { }
+        }
+        meters = list;
+    }
+
+    public static void Reset() { meters = null; }
 }
 "@
 } catch {
@@ -118,13 +153,11 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-[ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
-class AuraSpecEnumerator {}
-
 [Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IAuraSpecEnumerator {
     int EnumAudioEndpoints(int dataFlow, int stateMask, out IntPtr devices);
     int GetDefaultAudioEndpoint(int dataFlow, int role, out IAuraSpecDevice endpoint);
+    int GetDevice([MarshalAs(UnmanagedType.LPWStr)] string id, out IAuraSpecDevice device);
 }
 
 [Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -165,6 +198,8 @@ public static class AuraSpectrum {
     /// Último error de captura ("" si funciona). Si no está vacío, el script usa el volumen como respaldo.
     public static volatile string LastError = "";
     public static volatile string Format = "";
+    /// Dispositivo a capturar (id de Core Audio); vacío = salida predeterminada.
+    public static volatile string TargetId = "";
 
     public static void Start(int count) {
         if (running) return;
@@ -191,9 +226,13 @@ public static class AuraSpectrum {
     }
 
     static void Capture() {
-        var enumerator = (IAuraSpecEnumerator)new AuraSpecEnumerator();
+        // Por CLSID y no con una clase [ComImport]: el medidor ya registra una con el mismo GUID y chocarían.
+        var enumerator = (IAuraSpecEnumerator)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")));
         IAuraSpecDevice device;
-        Marshal.ThrowExceptionForHR(enumerator.GetDefaultAudioEndpoint(0, 1, out device));
+        string usedId = TargetId;
+        if (usedId == "" || enumerator.GetDevice(usedId, out device) != 0) {
+            Marshal.ThrowExceptionForHR(enumerator.GetDefaultAudioEndpoint(0, 1, out device));
+        }
         Guid iid = typeof(IAuraAudioClient).GUID;
         object o;
         Marshal.ThrowExceptionForHR(device.Activate(ref iid, 23, IntPtr.Zero, out o));
@@ -235,7 +274,8 @@ public static class AuraSpectrum {
         long lastFft = 0, lastData = 0;
         try {
             // Se reinicia cada 10 s para seguir cambios de dispositivo (audífonos, bocinas...).
-            while (running && clock.ElapsedMilliseconds < 10000) {
+            // También se reinicia si la música pasa a sonar por otro dispositivo.
+            while (running && clock.ElapsedMilliseconds < 10000 && usedId == TargetId) {
                 Thread.Sleep(10);
                 uint packet;
                 Marshal.ThrowExceptionForHR(capture.GetNextPacketSize(out packet));
@@ -451,6 +491,9 @@ $lastPos = ''
 $lastSpectrum = ''
 $lastSpectrumError = ''
 $reportedFormat = ''
+$lastDevice = $null
+$silentSince = -1
+$silenceReported = $false
 $artPending = 0
 $epoch = [DateTimeOffset]::new(1970, 1, 1, 0, 0, 0, [TimeSpan]::Zero)
 
@@ -478,10 +521,36 @@ while ($true) {
         }
     }
 
+    # El espectro escucha el dispositivo por el que de verdad está sonando la música.
+    if ($meterOk -and $spectrumOk) {
+        $active = [string][AuraMeter]::ActiveId
+        if ($active -ne $lastDevice) {
+            $lastDevice = $active
+            [AuraSpectrum]::TargetId = $active
+            Emit @{ t = 'info'; where = 'spectrum'; msg = "escuchando el dispositivo $active" }
+        }
+    }
+
     $values = $null
     $spectrumError = if ($spectrumOk) { [string][AuraSpectrum]::LastError } else { 'no disponible' }
     if ($spectrumOk -and $spectrumError -eq '') {
         $values = [AuraSpectrum]::Bands()
+        # Si la captura da silencio pero el medidor oye sonido, se usa el volumen como respaldo.
+        $loudest = 0
+        foreach ($v in $values) { if ($v -gt $loudest) { $loudest = $v } }
+        if ($loudest -le 3 -and $peak -gt 0.05) {
+            if ($silentSince -lt 0) { $silentSince = $now }
+            if ($now - $silentSince -gt 1500) {
+                $values = Get-FallbackBands $peak
+                if (-not $silenceReported) {
+                    $silenceReported = $true
+                    Emit @{ t = 'info'; where = 'spectrum'; msg = "la captura da silencio pero hay sonido (nivel $peak): las barras usan el volumen" }
+                }
+            }
+        } else {
+            $silentSince = -1
+$silenceReported = $false
+        }
         $format = [string][AuraSpectrum]::Format
         if ($format -ne '' -and $format -ne $reportedFormat) {
             $reportedFormat = $format

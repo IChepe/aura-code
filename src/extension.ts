@@ -1,5 +1,7 @@
+import { execFile } from 'child_process';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { FONT_DOWNLOADS, GRADIENTS, localize, SPECIAL_BACKGROUNDS } from './catalog';
@@ -20,12 +22,22 @@ const WANT_PATCHED = 'aura.wantPatched';
 
 export function activate(ctx: vscode.ExtensionContext): void {
     const log = vscode.window.createOutputChannel('Aura Code');
+    // Últimas líneas del registro, para "Aura: Copiar diagnóstico".
+    const recentLog: string[] = [];
+    const appendLine = log.appendLine.bind(log);
+    log.appendLine = (line: string) => {
+        recentLog.push(`${new Date().toISOString().slice(11, 19)} ${line}`);
+        if (recentLog.length > 80) {
+            recentLog.shift();
+        }
+        appendLine(line);
+    };
     const appRoot = vscode.env.appRoot;
     const paths = core.appPaths(appRoot);
     const hub = new AuraHub(ctx.extensionPath, log);
     ctx.subscriptions.push(log, hub);
 
-    const music = new MusicViewProvider(ctx.extensionUri, hub);
+    const music = new MusicViewProvider(ctx.extensionUri, hub, m => log.appendLine(m));
     ctx.subscriptions.push(music, vscode.window.registerWebviewViewProvider(MusicViewProvider.viewId, music));
 
     const isPatched = () => core.hasPatch(paths.workbench);
@@ -337,7 +349,52 @@ export function activate(ctx: vscode.ExtensionContext): void {
         disable,
         isPatched,
         currentTrack: () => hub.currentTrack,
+        log: (message: string) => log.appendLine(message),
     };
+
+    // --- Soporte: administrador y diagnóstico ----------------------------------------
+    /** "net session" solo funciona con permisos de administrador. */
+    function isAdmin(): Promise<boolean> {
+        if (process.platform !== 'win32') {
+            return Promise.resolve(false);
+        }
+        return new Promise(resolve => execFile('net', ['session'], { windowsHide: true }, err => resolve(!err)));
+    }
+
+    isAdmin().then(async admin => {
+        if (!admin) {
+            return;
+        }
+        log.appendLine('[soporte] VS Code se está ejecutando como administrador');
+        const choice = await vscode.window.showWarningMessage(t('admin.warning'), t('btn.moreInfo'));
+        if (choice) {
+            const url = getLang() === 'es'
+                ? 'https://github.com/IChepe/aura-code/blob/main/README.es.md#-solución-de-problemas'
+                : 'https://github.com/IChepe/aura-code#-troubleshooting';
+            await vscode.env.openExternal(vscode.Uri.parse(url));
+        }
+    });
+
+    async function copyDiagnostics(): Promise<void> {
+        const cfg = getConfig();
+        const track = hub.currentTrack;
+        const home = os.homedir();
+        const lines = [
+            '### Aura Code — diagnostics',
+            `- Aura: ${ctx.extension.packageJSON.version} · VS Code: ${vscode.version} · ${process.platform} ${os.release()}`,
+            `- Administrator: ${await isAdmin()} · Language: ${getLang()} (${cfg.language})`,
+            `- Patched: ${isPatched()} · Music window owner: ${hub.isOwner}`,
+            `- Background: ${cfg.background} · Transparency: ${cfg.transparency} · Music enabled: ${cfg.musicEnabled}`,
+            `- Track detected: ${track.title ? 'yes' : 'no'} · Playing: ${track.playing} · App: ${track.app || '-'}`,
+            '',
+            '```',
+            // Sin rutas de la carpeta personal (pueden incluir el nombre de usuario).
+            ...recentLog.map(l => l.split(home).join('~')),
+            '```',
+        ];
+        await vscode.env.clipboard.writeText(lines.join('\n'));
+        vscode.window.showInformationMessage(t('diag.copied'));
+    }
 
     const VISIBILITY_LEVELS: { value: number; label: MessageKey; detail?: MessageKey }[] = [
         { value: 100, label: 'visibility.opaque', detail: 'visibility.opaqueDetail' },
@@ -355,6 +412,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         vscode.commands.registerCommand('aura.disable', disable),
         vscode.commands.registerCommand('aura.pickImage', pickImage),
         vscode.commands.registerCommand('aura.checkForUpdates', () => updater.check(true)),
+        vscode.commands.registerCommand('aura.copyDiagnostics', copyDiagnostics),
         vscode.commands.registerCommand('aura.toggleMusic', async () => {
             const next = !getConfig().musicEnabled;
             await setSetting('music.enabled', next);

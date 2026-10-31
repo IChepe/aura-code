@@ -39,5 +39,6 @@
   "config.aura.language.enumDescriptions.0": "Automatic (VS Code language)",
   "config.aura.language.enumDescriptions.1": "Español",
   "config.aura.language.enumDescriptions.2": "English",
-  "config.aura.checkForUpdates.description": "Check once a day on GitHub whether a new version of Aura is available and offer to install it."
+  "config.aura.checkForUpdates.description": "Check once a day on GitHub whether a new version of Aura is available and offer to install it.",
+  "command.aura.copyDiagnostics": "Copy diagnostics"
 }

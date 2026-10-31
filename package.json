@@ -2,7 +2,7 @@
   "name": "aura-code",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "IChepe",
   "author": {
     "name": "IChepe",
@@ -145,6 +145,11 @@
       {
         "command": "aura.checkForUpdates",
         "title": "%command.aura.checkForUpdates%",
+        "category": "Aura"
+      },
+      {
+        "command": "aura.copyDiagnostics",
+        "title": "%command.aura.copyDiagnostics%",
         "category": "Aura"
       }
     ],

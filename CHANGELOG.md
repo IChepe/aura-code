@@ -1,5 +1,19 @@
 # Changelog / Cambios
 
+## 1.1.2
+
+🇬🇧
+- **Visualizer**: Aura now measures every active audio output and listens to the one that is actually playing, so the bars move even when your music plays through a device that isn't the Windows default. If the capture still gets silence while there is sound, the bars follow the volume.
+- New **Aura: Copy diagnostics** command: copies a technical summary (without personal paths) to paste when reporting a problem.
+- Warning when VS Code runs as administrator, which breaks extension panels.
+- The catalog draws each section independently and panel errors are logged in *Output → Aura Code*.
+
+🇪🇸
+- **Visualizador**: Aura mide todas las salidas de audio activas y escucha la que de verdad está sonando, así las barras se mueven aunque tu música suene por un dispositivo que no es el predeterminado de Windows. Si aun así la captura da silencio mientras hay sonido, las barras siguen el volumen.
+- Nuevo comando **Aura: Copiar diagnóstico**: copia un resumen técnico (sin rutas personales) para pegarlo al reportar un problema.
+- Aviso cuando VS Code se ejecuta como administrador, porque rompe los paneles de las extensiones.
+- El catálogo dibuja cada sección por separado y los errores de los paneles quedan en *Salida → Aura Code*.
+
 ## 1.1.1
 
 🇬🇧

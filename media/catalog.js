@@ -34,13 +34,23 @@
         }
     });
 
+    /** Cada sección se dibuja por separado: si una falla, las demás se ven igual y el error queda registrado. */
     function render() {
-        renderStatus();
-        renderTrack();
-        renderBackgrounds();
-        renderSettings();
-        renderFonts();
+        const sections = { renderStatus, renderTrack, renderBackgrounds, renderSettings, renderFonts };
+        for (const [where, fn] of Object.entries(sections)) {
+            try {
+                fn();
+            } catch (err) {
+                reportError(where, err);
+            }
+        }
     }
+
+    function reportError(where, err) {
+        send({ type: 'clientError', where, message: String(err && err.stack || err) });
+    }
+
+    window.addEventListener('error', e => reportError('window', e.error || e.message));
 
     function renderStatus() {
         const box = $('patch-status');

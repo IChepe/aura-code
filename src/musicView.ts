@@ -11,7 +11,7 @@ export class MusicViewProvider implements vscode.WebviewViewProvider, vscode.Dis
     private view?: vscode.WebviewView;
     private readonly disposables: vscode.Disposable[] = [];
 
-    constructor(private readonly extensionUri: vscode.Uri, private readonly hub: AuraHub) {
+    constructor(private readonly extensionUri: vscode.Uri, private readonly hub: AuraHub, private readonly log: (msg: string) => void) {
         this.disposables.push(
             hub.onTrack(() => this.sendState()),
             hub.onArt(url => this.post({ type: 'art', url })),
@@ -30,8 +30,10 @@ export class MusicViewProvider implements vscode.WebviewViewProvider, vscode.Dis
         this.view = view;
         view.webview.options = { enableScripts: true, localResourceRoots: [vscode.Uri.joinPath(this.extensionUri, 'media')] };
         view.webview.html = this.html(view.webview);
-        view.webview.onDidReceiveMessage((m: { type: string; cmd?: MediaCommand }) => {
-            if (m.type === 'ready') {
+        view.webview.onDidReceiveMessage((m: { type: string; cmd?: MediaCommand; message?: string }) => {
+            if (m.type === 'clientError') {
+                this.log(`[música] error en el panel: ${m.message}`);
+            } else if (m.type === 'ready') {
                 this.sendState();
             } else if (m.type === 'cmd' && m.cmd) {
                 this.hub.sendCommand(m.cmd);

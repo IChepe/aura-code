@@ -18,6 +18,7 @@ export interface CatalogActions {
     disable(): Promise<void>;
     isPatched(): boolean;
     currentTrack(): TrackInfo;
+    log(message: string): void;
 }
 
 /** Panel web con el catálogo de fondos, fuentes y ajustes. */
@@ -69,6 +70,9 @@ export class CatalogPanel {
                 case 'ready':
                     await this.sendState();
                     break;
+                case 'clientError':
+                    this.actions.log(`[catálogo] error en el panel (${m.where}): ${m.message}`);
+                    return;
                 case 'setBackground':
                     await this.actions.setBackground(String(m.id));
                     break;
@@ -113,12 +117,19 @@ export class CatalogPanel {
     }
 
     private async sendState(): Promise<void> {
+        // Si falla la lista de fuentes (registro de Windows, permisos…), el resto del catálogo se muestra igual.
+        let fonts: unknown[] = [];
+        try {
+            fonts = await fontStatuses();
+        } catch (err) {
+            this.actions.log(`[catálogo] no se pudo leer la lista de fuentes: ${err}`);
+        }
         await this.panel.webview.postMessage({
             type: 'state',
             gradients: GRADIENTS.map(g => localize(g, getLang())),
             specials: SPECIAL_BACKGROUNDS.map(b => localize(b, getLang())),
             i18n: messages('ui.'),
-            fonts: await fontStatuses(),
+            fonts,
             currentFont: currentFontFamily(),
             config: getConfig(),
             patched: this.actions.isPatched(),

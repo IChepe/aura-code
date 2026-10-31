@@ -187,6 +187,11 @@ const es = {
     'player.off': 'La sincronización con la música está apagada.',
     'player.windowsOnly': 'La música por ahora solo funciona en Windows.',
     'player.enable': 'Activar',
+
+    // Soporte
+    'admin.warning': 'VS Code se está ejecutando como administrador. Así los paneles de Aura (catálogo y pestaña Música) pueden fallar o no cargar. Ciérralo y ábrelo de forma normal.',
+    'btn.moreInfo': 'Más información',
+    'diag.copied': 'Aura: diagnóstico copiado al portapapeles. Pégalo en tu reporte o mensaje.',
 };
 
 export type MessageKey = keyof typeof es;
@@ -357,6 +362,10 @@ const en: Record<MessageKey, string> = {
     'player.off': 'Music sync is turned off.',
     'player.windowsOnly': 'Music only works on Windows for now.',
     'player.enable': 'Turn on',
+
+    'admin.warning': 'VS Code is running as administrator. This can make Aura panels (catalog and Music tab) fail or not load. Close it and open it normally.',
+    'btn.moreInfo': 'More info',
+    'diag.copied': 'Aura: diagnostics copied to the clipboard. Paste it into your report or message.',
 };
 
 const MESSAGES: Record<Lang, Record<MessageKey, string>> = { es, en };

@@ -178,6 +178,7 @@ Si instalaste Aura desde GitHub, una vez al día comprueba si hay una versión n
 | `Aura: Activar/desactivar sincronización con la música` | |
 | `Aura: Activar efectos` / `Aura: Desactivar y restaurar VS Code` | Aplica o quita el parche |
 | `Aura: Buscar actualizaciones` | Comprueba si hay una versión nueva en GitHub |
+| `Aura: Copiar diagnóstico` | Copia un resumen técnico para enviarlo al reportar un problema |
 
 ### Ajustes principales
 
@@ -296,8 +297,8 @@ La música funciona en Windows 10/11 con apps que muestran su canción en los co
 <details>
 <summary><b>Aparece la canción pero las barras del visualizador no se mueven</b></summary>
 
-- Actualiza a la última versión (**1.1.1** o posterior): acepta todos los formatos de audio y, si no se puede capturar el espectro, las barras se mueven con el volumen.
-- Aura escucha el **dispositivo de salida predeterminado de Windows**. Si tu navegador o reproductor manda el sonido a otro dispositivo (por ejemplo unos audífonos elegidos solo dentro de la app), ponlo como predeterminado en Windows (*Configuración → Sistema → Sonido*) o configura la app para usar el predeterminado.
+- Actualiza a la última versión (**1.1.2** o posterior): acepta todos los formatos de audio, **escucha automáticamente el dispositivo de salida que de verdad está sonando** (aunque no sea el predeterminado de Windows) y, si aun así no se puede capturar el espectro, las barras se mueven con el volumen.
+- Si sigue pasando, ejecuta **Aura: Copiar diagnóstico** y pega el resultado en un [issue](https://github.com/IChepe/aura-code/issues).
 - Abre *Ver → Salida* (*View → Output*) y elige **Aura Code**: las líneas que empiezan con `[media] spectrum:` muestran el formato de audio capturado o el error exacto. Inclúyelas si reportas el problema.
 </details>
 

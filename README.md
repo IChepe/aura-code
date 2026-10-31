@@ -178,6 +178,7 @@ If you installed Aura from GitHub, it checks once a day for a new version. When 
 | `Aura: Toggle music sync` | |
 | `Aura: Enable effects` / `Aura: Disable and restore VS Code` | Applies or removes the patch |
 | `Aura: Check for updates` | Checks GitHub for a new version |
+| `Aura: Copy diagnostics` | Copies a technical summary to send when reporting a problem |
 
 ### Main settings
 
@@ -296,8 +297,8 @@ Music works on Windows 10/11 with apps that show their song in the Windows media
 <details>
 <summary><b>The song shows up but the visualizer bars stay flat</b></summary>
 
-- Update to the latest version (**1.1.1** or later): it supports every audio format and, if the spectrum can't be captured, the bars move with the volume instead.
-- Aura listens to the **default Windows output device**. If your browser or player sends sound to a different device (for example headphones chosen only inside the app), set that device as default in Windows (*Settings → System → Sound*) or set the app to use the default device.
+- Update to the latest version (**1.1.2** or later): it supports every audio format, **automatically listens to whichever output device is actually playing** (even if it isn't the Windows default) and, if the spectrum still can't be captured, the bars move with the volume instead.
+- If it still happens, run **Aura: Copy diagnostics** and paste the result into an [issue](https://github.com/IChepe/aura-code/issues).
 - Open *View → Output* and pick **Aura Code**: lines starting with `[media] spectrum:` show the captured audio format or the exact error. Include them if you report the problem.
 </details>
 
